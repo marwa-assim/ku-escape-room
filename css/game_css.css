@@ -1,0 +1,819 @@
+/* =====================================================================
+   SECRET RECIPE LOCK — Candy / lollipop visual theme
+   Purely presentational. Game logic lives in script.js and is untouched.
+   ===================================================================== */
+
+:root {
+    /* Palette */
+    --candy-pink: #ff6fa5;
+    --candy-pink-deep: #e0407c;
+    --candy-mint: #6fe3c2;
+    --candy-lemon: #ffe27a;
+    --candy-peach: #ffb58a;
+    --candy-lilac: #c8b6ff;
+    --candy-cream: #fff7ee;
+    --ink: #3a2438;
+    --ink-soft: #6c5069;
+    --ink-muted: #8c7a8a;
+
+    /* Glass */
+    --glass-bg: rgba(255, 255, 255, 0.42);
+    --glass-border: rgba(255, 255, 255, 0.75);
+    --glass-shadow: 0 30px 70px rgba(120, 50, 110, 0.22), 0 4px 14px rgba(120, 50, 110, 0.10);
+
+    /* Piece sizing — scales with viewport HEIGHT (so the whole board fits on
+       short laptop screens) and with viewport WIDTH (so 3 columns fit on phones). */
+    --head: clamp(58px, min(24vw, 13vh), 112px);
+    --stick-h: clamp(14px, 2.8vh, 26px);
+    --stick-w: clamp(7px, 1.2vh, 11px);
+    --grid-col-gap: clamp(10px, min(2.4vw, 2.6vh), 24px);
+    --grid-row-gap: clamp(6px, 1.4vh, 14px);
+
+    /* Vertical rhythm — also viewport-height aware */
+    --space-xs: clamp(4px, 0.8vh, 8px);
+    --space-sm: clamp(8px, 1.4vh, 14px);
+    --space-md: clamp(10px, 2vh, 22px);
+    --panel-pad-y: clamp(14px, 2.6vh, 28px);
+    --panel-pad-x: clamp(14px, 4vw, 34px);
+
+    /* Motion */
+    --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --font-display: "Fredoka", "Nunito", "Segoe UI Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-body: "Nunito", "Fredoka", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow-x: hidden;
+
+    /* Candy-shop environment: soft pastel wash + subtle sugar grain */
+    background:
+        radial-gradient(1200px 700px at 8% 12%, rgba(255, 178, 210, 0.75), transparent 60%),
+        radial-gradient(1000px 700px at 92% 18%, rgba(255, 224, 150, 0.70), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(150, 236, 215, 0.70), transparent 60%),
+        linear-gradient(160deg, #ffe4f0 0%, #fff2e6 45%, #e6fbf4 100%);
+    background-attachment: fixed;
+}
+
+.game-page-body{
+    padding: clamp(8px, 1.6vh, 20px) clamp(10px, 2vw, 16px);
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* Faint sugar-sprinkle texture on top of the wash */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
+        radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
+    background-size: 34px 34px, 54px 54px;
+    background-position: 0 0, 17px 27px;
+    opacity: 0.55;
+    z-index: 0;
+}
+
+/* --------------------------------------------------------------------
+   Background blobs (soft coloured lights behind the glass)
+   -------------------------------------------------------------------- */
+.bg-blobs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.75;
+    animation: blobDrift 18s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.blob-1 { width: 42vmax; height: 42vmax; left: -12vmax; top: -10vmax;  background: #ff9cc7; }
+.blob-2 { width: 36vmax; height: 36vmax; right: -10vmax; top: 6vmax;   background: #ffd47a; animation-delay: -6s; }
+.blob-3 { width: 40vmax; height: 40vmax; left: 20vmax; bottom: -18vmax; background: #8ef0d0; animation-delay: -11s; }
+.blob-4 { width: 26vmax; height: 26vmax; right: 18vmax; bottom: -6vmax; background: #d2bfff; animation-delay: -3s; }
+
+@keyframes blobDrift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+}
+
+/* --------------------------------------------------------------------
+   Falling wrapped candies (decorative, behind the glass, no pointer events)
+   -------------------------------------------------------------------- */
+.candy-rain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.wrapped-candy {
+    --s: 36px;
+    --c1: #ff6fa5;
+    --c2: #ffd1e5;
+    --dur: 14s;
+    --delay: 0s;
+    --x: 50%;
+    --rot: 0deg;
+    --op: 0.8;
+    --spin: 1;
+
+    position: absolute;
+    top: -12vh;
+    left: var(--x);
+    width: var(--s);
+    height: calc(var(--s) * 0.56);
+    opacity: var(--op);
+    animation: candyFall var(--dur) linear var(--delay) infinite;
+    will-change: transform;
+    filter: drop-shadow(0 6px 10px rgba(90, 40, 80, 0.18));
+}
+
+/* Candy body */
+.wrapped-candy .wc-body {
+    position: absolute;
+    left: 22%;
+    right: 22%;
+    top: 0;
+    bottom: 0;
+    border-radius: 50% / 48%;
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85) 0 12%, transparent 40%),
+        repeating-linear-gradient(115deg, var(--c1) 0 22%, var(--c2) 22% 40%);
+    box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Twisted wrapper ends */
+.wrapped-candy::before,
+.wrapped-candy::after {
+    content: "";
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    width: 24%;
+    background: linear-gradient(180deg, var(--c2), var(--c1));
+    opacity: 0.95;
+}
+.wrapped-candy::before { left: 0;  clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%, 25% 50%); }
+.wrapped-candy::after  { right: 0; clip-path: polygon(100% 0, 0 35%, 0 65%, 100% 100%, 75% 50%); }
+
+@keyframes candyFall {
+    0%   { transform: translate3d(0, 0, 0) rotate(var(--rot)); }
+    100% { transform: translate3d(calc(var(--spin) * 6vw), 125vh, 0) rotate(calc(var(--rot) + var(--spin) * 340deg)); }
+}
+
+/* --------------------------------------------------------------------
+   Glass panel
+   -------------------------------------------------------------------- */
+.glass-panel {
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    position: relative;
+}
+
+/* Soft top-light sheen across the glass */
+.glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.25) 100%);
+}
+
+.game-container {
+    text-align: center;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
+    width: min(100%, 520px);
+    max-height: 100%;
+    z-index: 1;
+    animation: panelIn 0.7s var(--ease-soft) both;
+}
+
+.game-container > * { position: relative; }
+
+@keyframes panelIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------
+   Header / typography
+   -------------------------------------------------------------------- */
+.game-header { margin-bottom: 0; }
+
+.game-container h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(22px, min(6vw, 4.6vh), 38px);
+    line-height: 1.1;
+    margin: 0 0 var(--space-xs);
+    letter-spacing: 0.01em;
+    background: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.7));
+}
+
+.instructions {
+    max-width: 400px;
+    margin: 0 auto;
+    font-size: clamp(12px, 2vh, 14.5px);
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+/* --------------------------------------------------------------------
+   3×3 lollipop grid
+   -------------------------------------------------------------------- */
+.circle-grid {
+    display: grid;
+    grid-template-columns: repeat(3, var(--head));
+    column-gap: var(--grid-col-gap);
+    row-gap: var(--grid-row-gap);
+    justify-content: center;
+    margin: var(--space-md) auto 0;
+    padding: var(--space-xs) 6px 0;
+}
+
+/* Small wobble when the recipe is restarted (visual only) */
+.circle-grid.reshuffle { animation: gridShake 0.5s var(--ease-soft); }
+@keyframes gridShake {
+    0%   { transform: translateX(0) rotate(0); }
+    25%  { transform: translateX(-4px) rotate(-0.6deg); }
+    50%  { transform: translateX(4px) rotate(0.6deg); }
+    75%  { transform: translateX(-2px) rotate(-0.3deg); }
+    100% { transform: translateX(0) rotate(0); }
+}
+
+/* The button itself is a transparent hit-area holding head + stick */
+.circle {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    width: var(--head);
+    height: calc(var(--head) + var(--stick-h));
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font: inherit;
+    color: inherit;
+    -webkit-tap-highlight-color: transparent;
+    transform-origin: 50% 40%;
+    transition: transform 0.22s var(--ease-soft), filter 0.22s var(--ease-soft);
+    outline: none;
+}
+
+/* Lollipop stick */
+.circle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: var(--stick-w);
+    height: calc(var(--stick-h) + 12px);
+    transform: translateX(-50%);
+    border-radius: 6px;
+    background: linear-gradient(90deg, #f3e6d6 0%, #fffaf3 45%, #e5d2bd 100%);
+    box-shadow:
+        0 6px 10px rgba(80, 40, 70, 0.18),
+        inset 0 0 0 1px rgba(150, 120, 100, 0.25);
+    z-index: 0;
+    transition: transform 0.22s var(--ease-soft);
+}
+
+/* Candy head */
+.candy-face {
+    --c1: #a7a2ab;
+    --c2: #d9d5dd;
+    --c3: #8f8a94;
+    --glow: rgba(0, 0, 0, 0);
+    --label: #fff;
+
+    position: relative;
+    z-index: 1;
+    width: var(--head);
+    height: var(--head);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    overflow: hidden;
+    isolation: isolate;
+
+    background:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.0) 0 30%, rgba(0, 0, 0, 0.06) 100%),
+        repeating-conic-gradient(from -20deg at 50% 50%, var(--c1) 0deg 20deg, var(--c2) 20deg 40deg, var(--c3) 40deg 45deg);
+    box-shadow:
+        0 10px 22px rgba(70, 35, 65, 0.22),
+        0 2px 4px rgba(70, 35, 65, 0.12),
+        inset 0 -8px 14px rgba(0, 0, 0, 0.16),
+        inset 0 6px 12px rgba(255, 255, 255, 0.35),
+        0 0 0 4px rgba(255, 255, 255, 0.55),
+        0 0 0 5.5px rgba(120, 90, 115, 0.12),
+        0 0 28px 6px var(--glow);
+    transition:
+        background 0.35s ease,
+        box-shadow 0.35s ease,
+        filter 0.35s ease;
+    transform-origin: 50% 50%;
+}
+
+/* Glossy highlight + gentle rim */
+.candy-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.85) 0 9%, rgba(255, 255, 255, 0.35) 22%, rgba(255, 255, 255, 0) 42%),
+        radial-gradient(circle at 70% 78%, rgba(255, 255, 255, 0.18) 0 10%, rgba(255, 255, 255, 0) 30%),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.22) 100%);
+    z-index: 1;
+}
+
+/* Frosted centre disc that keeps the label readable over the swirl */
+.candy-face::after {
+    content: "";
+    position: absolute;
+    inset: 17%;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0) 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+    z-index: 1;
+}
+
+.candy-emoji,
+.candy-name {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+}
+
+.candy-emoji {
+    font-size: clamp(18px, calc(var(--head) * 0.29), 30px);
+    line-height: 1;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+    transition: filter 0.3s ease, transform 0.3s var(--ease-soft);
+}
+
+.candy-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(9px, calc(var(--head) * 0.12), 12.5px);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: var(--label);
+    text-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.28),
+        0 2px 6px rgba(0, 0, 0, 0.35);
+    max-width: 92%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+/* ---- INACTIVE (grey) state: frosted, muted, still clearly visible ---- */
+.circle:not(.active) .candy-face {
+    --c1: #a49eab;
+    --c2: #cfcad4;
+    --c3: #857e8c;
+    filter: saturate(0.35);
+}
+/* Darker frosted centre so the white label stays crisp on grey */
+.circle:not(.active) .candy-face::after {
+    background: radial-gradient(circle at 50% 45%, rgba(70, 58, 76, 0.34), rgba(70, 58, 76, 0.22) 70%, rgba(70, 58, 76, 0) 100%);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.circle:not(.active) .candy-emoji { filter: grayscale(0.6) opacity(0.9) drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+.circle:not(.active) .candy-name {
+    color: #ffffff;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- ACTIVE (green) state: flavour-coloured, glossy, glowing ---- */
+.circle.active .candy-face {
+    filter: saturate(1.08) brightness(1.03);
+}
+.circle.active .candy-emoji { transform: scale(1.06); }
+
+/* Flavour swirls (only shown while the piece is active) */
+.circle.active[data-flavor="strawberry"] .candy-face { --c1: #ff5c8d; --c2: #ffd6e4; --c3: #e0336b; --glow: rgba(255, 92, 141, 0.55); }
+.circle.active[data-flavor="chocolate"]  .candy-face { --c1: #8a4b2c; --c2: #d9a77c; --c3: #5c2f18; --glow: rgba(138, 75, 44, 0.50); }
+.circle.active[data-flavor="lemon"]      .candy-face { --c1: #ffd42e; --c2: #fff5b8; --c3: #f2b705; --glow: rgba(255, 212, 46, 0.60); --label: #4a3a00; }
+.circle.active[data-flavor="honey"]      .candy-face { --c1: #f5a623; --c2: #ffe0a3; --c3: #d9840b; --glow: rgba(245, 166, 35, 0.60); --label: #4a2c00; }
+.circle.active[data-flavor="sugar"]      .candy-face { --c1: #ffb3d1; --c2: #ffffff; --c3: #ff8fbb; --glow: rgba(255, 179, 209, 0.65); --label: #7a1f4a; }
+.circle.active[data-flavor="milk"]       .candy-face { --c1: #fff3dc; --c2: #ffffff; --c3: #f0d9b5; --glow: rgba(255, 243, 220, 0.85); --label: #6b4a1e; }
+.circle.active[data-flavor="cherry"]     .candy-face { --c1: #d7263d; --c2: #ffb9c2; --c3: #9e1226; --glow: rgba(215, 38, 61, 0.55); }
+.circle.active[data-flavor="mint"]       .candy-face { --c1: #3ecfa1; --c2: #d7fff1; --c3: #1fa27a; --glow: rgba(62, 207, 161, 0.55); --label: #0b4a36; }
+.circle.active[data-flavor="orange"]     .candy-face { --c1: #ff8c42; --c2: #ffd9b8; --c3: #e8661a; --glow: rgba(255, 140, 66, 0.55); }
+
+/* Light-coloured flavours: darker label with a light halo instead */
+.circle.active[data-flavor="lemon"] .candy-name,
+.circle.active[data-flavor="honey"] .candy-name,
+.circle.active[data-flavor="sugar"] .candy-name,
+.circle.active[data-flavor="milk"]  .candy-name,
+.circle.active[data-flavor="mint"]  .candy-name {
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7),
+        0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+/* ---- Hover / press feedback ---- */
+@media (hover: hover) and (pointer: fine) {
+    .circle:hover {
+        transform: translateY(-4px) scale(1.06) rotate(-2.5deg);
+        filter: drop-shadow(0 12px 16px rgba(70, 35, 65, 0.18));
+    }
+    .circle:hover .candy-face {
+        box-shadow:
+            0 16px 30px rgba(70, 35, 65, 0.26),
+            0 2px 4px rgba(70, 35, 65, 0.12),
+            inset 0 -8px 14px rgba(0, 0, 0, 0.16),
+            inset 0 6px 12px rgba(255, 255, 255, 0.40),
+            0 0 0 4px rgba(255, 255, 255, 0.75),
+            0 0 0 5.5px rgba(120, 90, 115, 0.14),
+            0 0 34px 10px var(--glow);
+    }
+    .circle:not(.active):hover .candy-face { --glow: rgba(255, 255, 255, 0.55); }
+}
+
+.circle:active {
+    transform: translateY(0) scale(0.93) rotate(0deg);
+    transition-duration: 0.08s;
+}
+
+.circle:focus-visible .candy-face {
+    box-shadow:
+        0 10px 22px rgba(70, 35, 65, 0.22),
+        0 0 0 4px #fff,
+        0 0 0 7px var(--candy-pink-deep);
+}
+
+/* ---- Pop animation: candy blooms outward from its centre (added by candy_fx.js) ---- */
+.circle.pop .candy-face {
+    animation: candyPop 0.5s var(--ease-pop) both;
+}
+
+@keyframes candyPop {
+    0%   { transform: scale(0.45); }
+    55%  { transform: scale(1.14); }
+    78%  { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+/* Sparkle ring bursting out of the piece that was actually clicked */
+.circle .burst-ring {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--head) / 2);
+    width: var(--head);
+    height: var(--head);
+    margin: calc(var(--head) / -2) 0 0 calc(var(--head) / -2);
+    border-radius: 50%;
+    pointer-events: none;
+    border: 3px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 18px 4px rgba(255, 255, 255, 0.55), inset 0 0 12px rgba(255, 255, 255, 0.6);
+    opacity: 0;
+    z-index: 2;
+    animation: burstRing 0.6s var(--ease-soft) forwards;
+}
+
+@keyframes burstRing {
+    0%   { transform: scale(0.5); opacity: 0.95; }
+    100% { transform: scale(1.7); opacity: 0; }
+}
+
+/* --------------------------------------------------------------------
+   Controls & buttons
+   -------------------------------------------------------------------- */
+.controls {
+    margin-top: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.move-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    padding: clamp(7px, 1.2vh, 10px) 16px;
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+}
+
+.move-counter #move-count {
+    font-weight: 700;
+    color: var(--candy-pink-deep);
+    min-width: 1.2em;
+    text-align: center;
+}
+
+/* Shared candy button base */
+.reset-btn,
+.answer-btn,
+.continue-btn,
+.overlay-buttons button {
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.2s var(--ease-soft),
+        box-shadow 0.2s var(--ease-soft),
+        filter 0.2s ease,
+        background 0.25s ease,
+        color 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Gloss highlight on every candy button */
+.reset-btn::before,
+.answer-btn::before,
+.continue-btn::before,
+.overlay-buttons button::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+.reset-btn:hover,
+.answer-btn:not(:disabled):hover,
+.continue-btn:hover,
+.overlay-buttons button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.reset-btn:active,
+.answer-btn:not(:disabled):active,
+.continue-btn:active,
+.overlay-buttons button:active {
+    transform: translateY(1px) scale(0.97);
+    transition-duration: 0.08s;
+}
+
+.reset-btn:focus-visible,
+.answer-btn:focus-visible,
+.continue-btn:focus-visible,
+.overlay-buttons button:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--candy-pink-deep);
+}
+
+/* Restart: strawberry-pink candy */
+.reset-btn {
+    padding: clamp(8px, 1.4vh, 11px) clamp(16px, 2.4vw, 22px);
+    color: #fff;
+    background: linear-gradient(180deg, #ff7fb3 0%, #ff4f8b 55%, #ec3b78 100%);
+    box-shadow:
+        0 8px 18px rgba(236, 59, 120, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.reset-btn:hover { box-shadow: 0 12px 24px rgba(236, 59, 120, 0.42), 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 -3px 0 rgba(0, 0, 0, 0.12) inset; }
+
+/* Get Answer: mint candy when ready, frosted glass while locked */
+.answer-btn {
+    margin-top: var(--space-sm);
+    padding: clamp(8px, 1.4vh, 11px) clamp(18px, 2.6vw, 24px);
+    color: #0e4d3a;
+    background: linear-gradient(180deg, #a8f5dc 0%, #5ee0b6 55%, #3bc79c 100%);
+    box-shadow:
+        0 8px 18px rgba(59, 199, 156, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.10) inset;
+    animation: answerReady 0.5s var(--ease-pop);
+}
+
+@keyframes answerReady {
+    0%   { transform: scale(0.94); }
+    60%  { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.answer-btn:disabled {
+    animation: none;
+    opacity: 1;
+    color: var(--ink-muted);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.08), inset 0 1px 0 #fff;
+    cursor: not-allowed;
+    font-variant-numeric: tabular-nums;
+}
+.answer-btn:disabled::before { opacity: 0.4; }
+
+/* Continue: lilac candy */
+.continue-btn {
+    display: none;
+    margin-top: var(--space-xs);
+    padding: clamp(8px, 1.4vh, 11px) clamp(20px, 3vw, 28px);
+    font-size: 15px;
+    color: #fff;
+    background: linear-gradient(180deg, #d7b8ff 0%, #b07cff 55%, #9a5cf5 100%);
+    box-shadow:
+        0 10px 22px rgba(154, 92, 245, 0.38),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+.continue-btn.show { display: inline-block; animation: answerReady 0.55s var(--ease-pop); }
+
+/* Success message */
+.success-message {
+    display: none;
+    font-family: var(--font-display);
+    font-size: clamp(16px, 2.6vh, 22px);
+    font-weight: 700;
+    margin: var(--space-xs) 0 0;
+    background: linear-gradient(120deg, #1fa27a, #3ecfa1 50%, #1c8f6a);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8));
+}
+.success-message.show { display: block; animation: successPop 0.6s var(--ease-pop); }
+
+@keyframes successPop {
+    0%   { transform: scale(0.7); opacity: 0; }
+    60%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------
+   Overlays (answer confirm / block)
+   -------------------------------------------------------------------- */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(58, 20, 52, 0.55);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    z-index: 10;
+}
+
+.overlay.show { display: flex; animation: overlayIn 0.25s ease both; }
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+.overlay-content {
+    --glass-bg: rgba(255, 255, 255, 0.78);
+    color: var(--ink);
+    padding: 30px 34px 28px;
+    border-radius: 26px;
+    text-align: center;
+    max-width: 360px;
+    width: 100%;
+    animation: panelIn 0.35s var(--ease-pop) both;
+}
+
+.overlay-content h2 {
+    font-size: 26px;
+    margin-bottom: 10px;
+}
+
+.overlay-content p {
+    margin: 6px 0;
+    font-weight: 600;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.overlay-content #block-countdown {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15em;
+    color: var(--candy-pink-deep);
+    font-variant-numeric: tabular-nums;
+}
+
+.overlay-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.overlay-buttons button {
+    padding: 12px 22px;
+    font-size: 15px;
+}
+
+#use-answer-btn {
+    color: #0e4d3a;
+    background: linear-gradient(180deg, #a8f5dc 0%, #5ee0b6 55%, #3bc79c 100%);
+    box-shadow:
+        0 8px 18px rgba(59, 199, 156, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.10) inset;
+    font-weight: 700;
+}
+#use-answer-btn:hover { filter: brightness(1.04); }
+
+#never-mind-btn {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(120, 50, 110, 0.12), inset 0 1px 0 #fff;
+}
+#never-mind-btn:hover { background: rgba(255, 255, 255, 0.92); }
+
+/* --------------------------------------------------------------------
+   Responsive sizing
+   -------------------------------------------------------------------- */
+/* Sizing is viewport-driven via the clamp() variables in :root, so only
+   small cosmetic adjustments are needed at narrow widths. */
+@media (max-width: 560px) {
+    .game-container { border-radius: 26px; }
+    .controls { gap: 10px; }
+    .reset-btn, .answer-btn { font-size: 14px; }
+}
+
+@media (max-width: 380px) {
+    .candy-name { letter-spacing: 0; }
+    .overlay-content { padding: 22px 18px 20px; }
+}
+/* --------------------------------------------------------------------
+   Reduced motion
+   -------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .blob,
+    .wrapped-candy,
+    .circle-grid.reshuffle,
+    .game-container,
+    .overlay-content,
+    .answer-btn,
+    .continue-btn.show,
+    .success-message.show { animation: none !important; }
+    .circle.pop .candy-face { animation-duration: 0.01s !important; }
+    .circle .burst-ring { display: none; }
+    .circle, .candy-face, .reset-btn, .answer-btn, .continue-btn, .overlay-buttons button { transition: none !important; }
+}
