@@ -1,0 +1,132 @@
+<?php
+$extraCss = 'css/support-style.css';
+$extraJs = 'javascript/support-screen.js';
+require('template/header.phtml') ?>
+
+    <!--
+    * Support Screen Template (support-screen.phtml)
+    *
+    * Main panel for the support team: timer, connectivity, hint sending, actions
+    *
+    * Author: Eshraq Ebrahim
+    * Version: 1.0
+    -->
+
+<?php $presetHints = isset($presetHints) ? $presetHints : []; ?>
+
+<?php if (!$isLoggedIn): ?>
+
+    <div class="text-center py-5">
+        <p class="text-muted mb-3">You need to log in to access the Support Panel.</p>
+        <a href="login.php" class="btn btn-primary">Go to Login</a>
+    </div>
+
+<?php else: ?>
+
+    <section class="support-screen">
+
+        <div class="timer-section text-center mb-4">
+            <p class="text-muted mb-1">Time Remaining</p>
+            <h1 class="display-3 fw-bold" id="timer-display">00:45:12</h1>
+
+            <!-- Timer controls: drive the shared timer on this panel and the Player Screen -->
+            <div class="timer-controls" role="group" aria-label="Timer controls">
+                <button type="button" class="timer-btn timer-btn-refresh" id="timer-refresh-btn">
+                    <span aria-hidden="true">⟳</span> Restart
+                </button>
+                <button type="button" class="timer-btn timer-btn-stop" id="timer-stop-btn">
+                    <span aria-hidden="true">■</span> Pause
+                </button>
+                <button type="button" class="timer-btn timer-btn-start" id="timer-start-btn">
+                    <span aria-hidden="true">▶</span> Start
+                </button>
+            </div>
+        </div>
+
+        <!-- Hint status: the dot turns green while a hint is live on the Player Screen -->
+        <div class="status-bar d-flex justify-content-between align-items-center p-3 mb-4 border rounded">
+            <span id="hint-status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="hint-status-text">No hint sent</span>
+            </span>
+        </div>
+
+        <?php $hintPages = array_chunk($presetHints, 3); ?>
+
+        <div class="hint-panel p-3 mb-4">
+            <h5 class="mb-3">Preset Hints</h5>
+
+            <?php if (empty($presetHints)): ?>
+                <p class="preset-empty mb-0">No preset hints saved yet — add one below.</p>
+            <?php endif; ?>
+
+            <div id="presetHintsCarousel" class="carousel slide">
+                <div class="carousel-inner">
+                    <?php foreach ($hintPages as $pageIndex => $hintsOnThisPage): ?>
+                        <div class="carousel-item <?php echo $pageIndex === 0 ? 'active' : ''; ?>">
+                            <div class="row g-2">
+                                <?php foreach ($hintsOnThisPage as $hint): ?>
+                                    <div class="col-12">
+                                        <form method="POST" action="support.php">
+                                            <input type="hidden" name="action" value="send_hint">
+                                            <input type="hidden" name="hint_text" value="<?php echo htmlspecialchars($hint); ?>">
+                                            <button type="submit" class="btn btn-outline-primary w-100"><?php echo htmlspecialchars($hint); ?></button>
+                                        </form>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <?php if (count($hintPages) > 1): ?>
+                    <div class="carousel-indicators position-static mt-2">
+                        <?php foreach ($hintPages as $pageIndex => $hintsOnThisPage): ?>
+                            <button type="button"
+                                    data-bs-target="#presetHintsCarousel"
+                                    data-bs-slide-to="<?php echo $pageIndex; ?>"
+                                    class="<?php echo $pageIndex === 0 ? 'active' : ''; ?>"
+                                    aria-label="Page <?php echo $pageIndex + 1; ?>"></button>
+                        <?php endforeach; ?>
+                    </div>
+
+                    <button class="btn btn-sm btn-outline-secondary mt-2" type="button"
+                            data-bs-target="#presetHintsCarousel" data-bs-slide="next">
+                        Next →
+                    </button>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="hint-panel p-3 mb-4">
+            <h5 class="mb-3">Send Custom Hint</h5>
+            <form method="POST" action="support.php" class="d-flex gap-2">
+                <input type="hidden" name="action" value="send_hint">
+                <input type="text" name="hint_text" id="custom-hint-input" class="form-control" placeholder="Type a hint..." autocomplete="off">
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+
+        <div class="hint-panel p-3 mb-4">
+            <h5 class="mb-3">Add New Preset</h5>
+            <form method="POST" action="support.php" class="d-flex gap-2">
+                <input type="hidden" name="action" value="add_preset">
+                <input type="text" name="new_preset_text" class="form-control" placeholder="New preset hint...">
+                <button type="submit" class="btn btn-secondary">Add to Presets</button>
+            </form>
+        </div>
+
+        <div class="actions-panel p-3">
+            <h5 class="mb-3">Actions</h5>
+            <div class="row g-2">
+                <div class="col-4"><button type="button" class="btn action-btn action-congrats w-100" id="sound-congrats-btn">🎉 Congratulation</button></div>
+                <div class="col-4"><button type="button" class="btn action-btn action-warning w-100" id="sound-warning-btn">⚠️ Warning !</button></div>
+                <div class="col-4"><button type="button" class="btn action-btn action-failed w-100" id="sound-failed-btn">😞 Failed</button></div>
+            </div>
+        </div>
+
+    </section>
+
+<?php endif; ?>
+
+<?php require('template/footer.phtml') ?>

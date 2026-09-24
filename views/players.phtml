@@ -1,0 +1,80 @@
+<?php
+$extraCss = 'css/player-style.css';
+$extraJs = ['javascript/player-screen.js', 'javascript/kiosk-hardening.js'];
+require('template/header.phtml') ?>
+
+    <!--
+    * Player Screen Template (player.phtml)
+    *
+    * Main display for players inside the room: timer, progress bar, hints
+    *
+    * Author: Eshraq Ebrahim
+    * Version: 1.0
+    -->
+
+    <!-- Decorative background layers (purely visual, never receive pointer events) -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob blob-1"></span>
+        <span class="blob blob-2"></span>
+        <span class="blob blob-3"></span>
+        <span class="blob blob-4"></span>
+    </div>
+    <div class="candy-rain" id="candy-rain" aria-hidden="true"></div>
+
+    <!-- Page title: floats above the glass panel, softly blurred for depth -->
+    <h1 class="page-title">KU sweets escape room</h1>
+
+    <section class="player-screen" id="player-screen">
+
+        <!-- Countdown. The placeholder below is replaced as soon as
+             player-screen.js loads; the real duration is set by the
+             GAME_DURATION value at the top of that file. -->
+        <div class="timer-section">
+            <p class="timer-label">Time Remaining</p>
+            <div class="timer-value" id="timer-display" role="timer" aria-live="off">
+                <span class="timer-seg">01</span>
+                <span class="timer-sep">:</span>
+                <span class="timer-seg">00</span>
+                <span class="timer-sep">:</span>
+                <span class="timer-seg">00</span>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-labels">
+                <span class="progress-label is-start">Start</span>
+                <span class="progress-label is-progress">Progress</span>
+                <span class="progress-label is-finish">Finish</span>
+            </div>
+
+            <div class="progress-rail">
+                <div class="progress-shell">
+                    <div class="progress-track"
+                         id="progress-track"
+                         role="progressbar"
+                         aria-label="Elapsed time"
+                         aria-valuemin="0"
+                         aria-valuemax="100"
+                         aria-valuenow="0">
+                        <div class="progress-fill" id="progress-bar"></div>
+                    </div>
+
+                    <span class="candy-marker" id="candy-marker" aria-hidden="true">
+                        <span class="candy-spinner"><span class="wc-body"></span></span>
+                    </span>
+                </div>
+
+                <span class="finish-flag" aria-hidden="true">🚩</span>
+            </div>
+        </div>
+
+        <section class="hint-section" id="hint-section">
+            <h2 class="hint-title">Hints</h2>
+            <div class="hint-box" id="hint-box">
+                <p class="hint-text" id="hint-text"></p>
+            </div>
+        </section>
+
+    </section>
+
+<?php require('template/footer.phtml') ?>

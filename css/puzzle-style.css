@@ -1,0 +1,288 @@
+/* =====================================================================
+   PUZZLE PAGE — project additions only
+   ---------------------------------------------------------------------
+   The game's own styling lives in escape_room/game_css.css and is NOT
+   touched. This file only styles what the project adds on top of the
+   game, using the game's own candy palette so nothing looks out of place:
+
+     1. The "Back to Control Hub" link
+     2. The winner envelope (shown by puzzle-win.js when the puzzle is solved)
+   ===================================================================== */
+
+.back-to-hub {
+    position: fixed;
+    top: clamp(10px, 2vh, 18px);
+    left: clamp(10px, 2vw, 18px);
+    z-index: 5;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+
+    font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: #6c5069;
+
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
+
+    transition: color 0.2s ease, background 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .back-to-hub:hover {
+        color: #e0407c;
+        background: rgba(255, 255, 255, 0.8);
+        transform: translateY(-1px);
+    }
+}
+
+.back-to-hub:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #e0407c;
+}
+
+@media (max-width: 560px) {
+    .back-to-hub { padding: 6px 12px; font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .back-to-hub { transition: none; }
+}
+
+/* =====================================================================
+   2. WINNER ENVELOPE
+   Shown by puzzle-win.js when the puzzle is solved. Everything behind it
+   is blurred out, so only the envelope and its letter are readable.
+   Same candy colours and easing as the game itself.
+   ===================================================================== */
+.win-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    /* Blur the whole game behind the envelope */
+    background: rgba(58, 20, 52, 0.55);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+}
+
+.win-overlay.is-open {
+    display: flex;
+    animation: winFade 0.45s ease both;
+}
+
+/* ---- The envelope ---- */
+.envelope {
+    position: relative;
+    width: min(86vw, 420px);
+    aspect-ratio: 1.55 / 1;
+    /* Room above for the letter to rise into */
+    margin-top: clamp(90px, 24vh, 230px);
+    perspective: 1000px;
+    animation: envelopeRise 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+/* Back of the envelope, behind the letter */
+.env-back {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ff9cc7 0%, #ff6fa5 60%, #ec3b78 100%);
+    box-shadow: 0 30px 60px rgba(90, 20, 70, 0.45);
+}
+
+/* Clips the letter at the envelope's bottom edge, open at the top */
+.letter-slot {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    -webkit-clip-path: inset(-800px 0 0 0);
+    clip-path: inset(-800px 0 0 0);
+}
+
+/* ---- The letter ---- */
+.letter {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    bottom: 8%;
+    height: 130%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(6px, 1.6vh, 14px);
+    padding: clamp(14px, 3vw, 26px);
+
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fffaf3 0%, #fff2e6 55%, #ffe9f2 100%);
+    box-shadow:
+        0 -8px 22px rgba(90, 40, 80, 0.20),
+        inset 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+
+    /* Resting position: out of the envelope (the animation starts inside) */
+    transform: translateY(-46%);
+    animation: letterOut 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.95s both;
+}
+
+.letter-text {
+    margin: 0;
+    font-family: "Fredoka", "Nunito", "Segoe UI Rounded", system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(22px, 5.4vw, 40px);
+    line-height: 1.15;
+    text-align: center;
+    letter-spacing: 0.01em;
+
+    background: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.75));
+
+    animation: letterTextIn 0.6s ease 1.5s both;
+}
+
+.letter-candy {
+    font-size: clamp(22px, 4.6vw, 34px);
+    line-height: 1;
+    filter: drop-shadow(0 3px 5px rgba(90, 40, 80, 0.28));
+    animation: letterTextIn 0.6s ease 1.7s both;
+}
+
+/* ---- Front pocket: covers the bottom of the letter ---- */
+.env-front {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ff85b8 0%, #f2558f 55%, #d92f6c 100%);
+    -webkit-clip-path: polygon(0 22%, 50% 72%, 100% 22%, 100% 100%, 0 100%);
+    clip-path: polygon(0 22%, 50% 72%, 100% 22%, 100% 100%, 0 100%);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ---- Flap: opens backwards, then drops behind the letter ---- */
+.env-flap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 72%;
+    z-index: 0;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(180deg, #ffb3d1 0%, #ff6fa5 100%);
+    -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+
+    transform-origin: 50% 0%;
+    transform: rotateX(-172deg);
+    animation: flapOpen 0.55s ease 0.55s both;
+}
+
+/* =====================================================================
+   ANIMATIONS
+   ===================================================================== */
+@keyframes winFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Pops up from below the screen */
+@keyframes envelopeRise {
+    from { transform: translateY(130vh) rotate(-4deg); }
+    to   { transform: translateY(0) rotate(0); }
+}
+
+@keyframes flapOpen {
+    0%   { transform: rotateX(0deg); z-index: 4; }
+    70%  { transform: rotateX(-150deg); z-index: 4; }
+    100% { transform: rotateX(-172deg); z-index: 0; }
+}
+
+@keyframes letterOut {
+    from { transform: translateY(46%); }
+    to   { transform: translateY(-46%); }
+}
+
+@keyframes letterTextIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+   REDUCED MOTION
+   Nothing slides or pops; the envelope is simply open and readable.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .win-overlay.is-open,
+    .envelope,
+    .letter,
+    .env-flap,
+    .letter-text,
+    .letter-candy { animation: none !important; }
+}
+
+/* =====================================================================
+   3. DEMO "SOLVE PUZZLE" BUTTON
+   Created by puzzle-win.js. Delete this block together with section 5 of
+   that file when the shortcut is no longer wanted.
+   ===================================================================== */
+.solve-demo-btn {
+    position: fixed;
+    right: clamp(10px, 2vw, 18px);
+    bottom: clamp(10px, 2vh, 18px);
+    z-index: 25;
+
+    padding: 9px 18px;
+    font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #d7b8ff 0%, #b07cff 55%, #9a5cf5 100%);
+    box-shadow:
+        0 8px 18px rgba(154, 92, 245, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .solve-demo-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+}
+
+.solve-demo-btn:active { transform: translateY(1px) scale(0.97); }
+
+.solve-demo-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.solve-demo-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #e0407c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .solve-demo-btn { transition: none; }
+}

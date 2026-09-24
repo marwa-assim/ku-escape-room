@@ -1,0 +1,52 @@
+services:
+  - type: pserv
+    name: ku-escape-mysql
+    runtime: docker
+    plan: starter
+    rootDir: mysql
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: MYSQL_DATABASE
+        value: game_database
+      - key: MYSQL_USER
+        value: escape_user
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+
+  - type: web
+    name: ku-escape-room
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /index.php
+    envVars:
+      - key: DB_HOST
+        fromService:
+          type: pserv
+          name: ku-escape-mysql
+          property: host
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: game_database
+      - key: DB_USER
+        value: escape_user
+      - key: DB_PASSWORD
+        fromService:
+          type: pserv
+          name: ku-escape-mysql
+          envVarKey: MYSQL_PASSWORD
+      - key: STATE_DIR
+        value: /var/data/game-state
+    disk:
+      name: game-state
+      mountPath: /var/data
+      sizeGB: 1
