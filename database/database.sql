@@ -3,7 +3,7 @@
 -- Run with:  mysql -u root -p < database.sql
 -- =====================================================================
 
-CREATE DATABASE game_database;
+CREATE DATABASE IF NOT EXISTS game_database;
 
 USE game_database;
 
