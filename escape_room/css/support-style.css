@@ -1,0 +1,800 @@
+/* =====================================================================
+   SUPPORT PANEL — Candy / lollipop visual theme
+   ---------------------------------------------------------------------
+   Styling for the support panel only. Purely presentational: the hint
+   forms, the carousel and every PHP value stay exactly as
+   support-screen.phtml renders them. This file only dresses the existing
+   Bootstrap markup.
+
+   - Fonts and headings: same as the candy puzzle game (Fredoka titles in
+     the pink → orange → purple gradient, Nunito body text).
+   - Background: the player screen's colours, but completely static.
+   - Panels and buttons: the player screen's glass cards and candy pills.
+
+   Sections:
+     1. Global tokens
+     2. Background (static)
+     3. Navigation bar
+     4. Main panel
+     5. Timer
+     6. Status bar
+     7. Panels and headings
+     8. Preset hints + carousel
+     9. Inputs and buttons
+    10. Actions
+    11. Responsive design
+    12. Reduced motion
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap");
+
+/* =====================================================================
+   1. GLOBAL TOKENS
+   ===================================================================== */
+:root {
+    /* Palette (shared with the player screen and the puzzle game) */
+    --candy-pink: #ff6fa5;
+    --candy-pink-deep: #e0407c;
+    --candy-mint: #6fe3c2;
+    --candy-mint-deep: #1fa27a;
+    --candy-lilac: #c8b6ff;
+    --ink: #3a2438;
+    --ink-soft: #6c5069;
+    --ink-muted: #8c7a8a;
+
+    /* Glass */
+    --glass-bg: rgba(255, 255, 255, 0.42);
+    --glass-border: rgba(255, 255, 255, 0.75);
+    --glass-shadow: 0 30px 70px rgba(120, 50, 110, 0.22), 0 4px 14px rgba(120, 50, 110, 0.10);
+
+    /* The game's title gradient */
+    --candy-title: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+
+    --panel-w: 820px;
+    --field-h: 46px;
+
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --font-display: "Fredoka", "Nunito", "Segoe UI Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-body: "Nunito", "Fredoka", "Segoe UI", system-ui, sans-serif;
+}
+
+/* =====================================================================
+   2. BACKGROUND (static)
+   The player screen's colours: its pastel wash plus its four soft colour
+   lights, drawn as fixed gradients instead of animated blobs. No falling
+   candies and no movement.
+   ===================================================================== */
+body {
+    min-height: 100vh;
+    min-height: 100svh;
+    font-family: var(--font-body);
+    color: var(--ink);
+    position: relative;
+
+    background:
+        /* the four colour lights (pink, yellow, mint, lilac) */
+        radial-gradient(circle 34vmax at 6% 8%, rgba(255, 156, 199, 0.70), transparent 70%),
+        radial-gradient(circle 30vmax at 96% 18%, rgba(255, 212, 122, 0.65), transparent 70%),
+        radial-gradient(circle 34vmax at 40% 108%, rgba(142, 240, 208, 0.62), transparent 70%),
+        radial-gradient(circle 24vmax at 80% 96%, rgba(210, 191, 255, 0.62), transparent 70%),
+        /* the base wash */
+        radial-gradient(1200px 700px at 8% 12%, rgba(255, 178, 210, 0.75), transparent 60%),
+        radial-gradient(1000px 700px at 92% 18%, rgba(255, 224, 150, 0.70), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(150, 236, 215, 0.70), transparent 60%),
+        linear-gradient(160deg, #ffe4f0 0%, #fff2e6 45%, #e6fbf4 100%);
+    background-attachment: fixed;
+}
+
+/* Faint sugar-sprinkle texture on top of the wash */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
+        radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
+    background-size: 34px 34px, 54px 54px;
+    background-position: 0 0, 17px 27px;
+    opacity: 0.55;
+    z-index: 0;
+}
+
+/* =====================================================================
+   3. NAVIGATION BAR
+   The dark Bootstrap bar from header.phtml as a candy glass strip.
+   .bg-dark is !important in Bootstrap, hence the !important here.
+   ===================================================================== */
+body > nav.navbar {
+    --bs-navbar-color: var(--ink-soft);
+    --bs-navbar-hover-color: var(--candy-pink-deep);
+    --bs-navbar-active-color: var(--candy-pink-deep);
+
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.45) !important;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 6px 20px rgba(120, 50, 110, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+}
+
+body > nav.navbar .navbar-brand {
+    font-weight: 700;
+    background: var(--candy-title);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+body > nav.navbar .nav-link {
+    border-radius: 999px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+/* The page we are on */
+body > nav.navbar .nav-link[href="support.php"] {
+    color: var(--candy-pink-deep);
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body > nav.navbar .nav-link:hover { background: rgba(255, 255, 255, 0.6); }
+}
+
+/* =====================================================================
+   4. MAIN PANEL
+   Same glass container as the player screen.
+   ===================================================================== */
+body > main.container {
+    position: relative;
+    z-index: 1;
+    padding-bottom: clamp(16px, 4vh, 40px);
+}
+
+.support-screen {
+    /* Recolours Bootstrap's .text-muted inside the panel */
+    --bs-secondary-color: var(--ink-soft);
+
+    position: relative;
+    width: min(100%, var(--panel-w));
+    margin: 0 auto;
+    padding: clamp(18px, 3vh, 32px) clamp(16px, 4vw, 36px);
+
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+}
+
+/* Soft top-light sheen across the glass */
+.support-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.25) 100%);
+    z-index: 0;
+}
+
+.support-screen > * { position: relative; z-index: 1; }
+
+/* Display order (visual only, the template is untouched):
+   timer → status → Send Custom Hint → Preset Hints → Add New Preset → Actions.
+   Everything not listed keeps its template order after the first three. */
+.support-screen {
+    display: flex;
+    flex-direction: column;
+}
+
+.support-screen > * { order: 10; }
+.support-screen > .timer-section { order: 1; }
+.support-screen > .status-bar { order: 2; }
+
+/* "Send Custom Hint" is the panel with the visible hint text box
+   (the preset buttons only carry hidden hint_text fields) */
+.support-screen > .hint-panel:has(input[type="text"][name="hint_text"]) { order: 3; }
+
+/* =====================================================================
+   5. TIMER
+   CSS only: big Fredoka digits in the game's title gradient.
+   ===================================================================== */
+.support-screen .timer-section .text-muted {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(12px, 1.9vh, 15px);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.support-screen #timer-display {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(44px, min(11vw, 9vh), 86px);
+    line-height: 1.05;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    background: var(--candy-title);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter:
+        drop-shadow(0 2px 0 rgba(255, 255, 255, 0.8))
+        drop-shadow(0 8px 18px rgba(224, 64, 124, 0.25));
+}
+
+/* ---- Timer controls: Refresh (left) · Stop (middle) · Start (right) ---- */
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(10px, 1.8vh, 16px);
+}
+
+.timer-btn {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 128px;
+    height: var(--field-h);
+    padding: 0 22px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        transform 0.2s var(--ease-soft),
+        box-shadow 0.2s var(--ease-soft),
+        filter 0.2s ease,
+        background 0.25s ease,
+        color 0.25s ease;
+}
+
+/* Gloss highlight */
+.timer-btn::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+/* Start: mint */
+.timer-btn-start {
+    color: #0e4d3a;
+    background: linear-gradient(180deg, #a8f5dc 0%, #5ee0b6 55%, #3bc79c 100%);
+    box-shadow:
+        0 8px 18px rgba(59, 199, 156, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.10) inset;
+}
+
+/* Stop: strawberry */
+.timer-btn-stop {
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(180deg, #ff7fb3 0%, #ff4f8b 55%, #ec3b78 100%);
+    box-shadow:
+        0 8px 18px rgba(236, 59, 120, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+/* Refresh: lilac */
+.timer-btn-refresh {
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(180deg, #d7b8ff 0%, #b07cff 55%, #9a5cf5 100%);
+    box-shadow:
+        0 8px 18px rgba(154, 92, 245, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .timer-btn:not(:disabled):hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+}
+
+.timer-btn:not(:disabled):active {
+    transform: translateY(1px) scale(0.97);
+    transition-duration: 0.08s;
+}
+
+.timer-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--candy-pink-deep);
+}
+
+/* Not available right now (e.g. Start while running): frosted glass */
+.timer-btn:disabled {
+    cursor: not-allowed;
+    color: var(--ink-muted);
+    text-shadow: none;
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.08), inset 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+
+.timer-btn:disabled::before { opacity: 0.4; }
+
+/* =====================================================================
+   6. STATUS BAR
+   Borders/radius are set through Bootstrap's own variables, so the
+   .border and .rounded utility classes on the element keep working.
+   ===================================================================== */
+.support-screen .status-bar {
+    --bs-border-width: 1.5px;
+    --bs-border-color: rgba(255, 255, 255, 0.85);
+    --bs-border-radius: 999px;
+
+    padding: 12px 22px !important;   /* beats .p-3 */
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+}
+
+/* Hint status: grey while nothing is on the Player Screen, green while a
+   hint is live there. support-screen.js adds/removes .is-live. */
+#hint-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--ink-muted);
+    transition: color 0.3s ease;
+}
+
+#hint-status.is-live { color: var(--candy-mint-deep); }
+
+.status-dot {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    /* Dim by default */
+    background: radial-gradient(circle at 35% 30%, #ffffff 0 20%, #cfc6cd 55%, #a599a4 100%);
+    box-shadow: 0 0 0 3px rgba(140, 122, 138, 0.14);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* A hint is on the Player Screen right now */
+#hint-status.is-live .status-dot {
+    background: radial-gradient(circle at 35% 30%, #d9fff2 0 20%, #3ecfa1 55%, #1fa27a 100%);
+    box-shadow:
+        0 0 0 3px rgba(62, 207, 161, 0.22),
+        0 0 10px 2px rgba(62, 207, 161, 0.55);
+}
+
+/* =====================================================================
+   7. PANELS AND HEADINGS
+   Inner glass cards, like the hints panel on the player screen.
+   ===================================================================== */
+.support-screen .hint-panel,
+.support-screen .actions-panel {
+    padding: clamp(14px, 2.2vh, 20px) clamp(14px, 2.4vw, 22px) !important;   /* beats .p-3 */
+    background: rgba(255, 255, 255, 0.46);
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    border-radius: 22px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 8px 20px rgba(120, 50, 110, 0.12);
+}
+
+/* Section titles in the game's title style */
+.support-screen h5 {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(18px, 2.4vh, 22px);
+    letter-spacing: 0.01em;
+    background: var(--candy-title);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.7));
+}
+
+/* =====================================================================
+   8. PRESET HINTS + CAROUSEL
+   ===================================================================== */
+
+/* Each preset hint is a soft glass pill */
+.support-screen .btn-outline-primary {
+    padding: 10px 18px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.62);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+    white-space: normal;
+    transition:
+        transform 0.2s var(--ease-soft),
+        border-color 0.2s ease,
+        box-shadow 0.2s var(--ease-soft),
+        background 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .support-screen .btn-outline-primary:hover {
+        color: var(--candy-pink-deep);
+        background: rgba(255, 255, 255, 0.9);
+        border-color: var(--candy-pink);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(224, 64, 124, 0.18), inset 0 1px 0 #fff;
+    }
+}
+
+.support-screen .btn-outline-primary:active {
+    color: var(--candy-pink-deep);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--candy-pink);
+    transform: translateY(1px) scale(0.98);
+}
+
+/* Page dots under the carousel */
+.support-screen .carousel-indicators {
+    margin-bottom: 0;
+    gap: 8px;
+}
+
+.support-screen .carousel-indicators [data-bs-target] {
+    width: 10px;
+    height: 10px;
+    margin: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: var(--candy-pink-deep);
+    opacity: 0.3;
+}
+
+.support-screen .carousel-indicators .active { opacity: 1; }
+
+/* "Next →" */
+.support-screen .btn-outline-secondary.btn-sm {
+    padding: 5px 16px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: #7a4fd6;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1.5px solid rgba(176, 124, 255, 0.45);
+    border-radius: 999px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .support-screen .btn-outline-secondary.btn-sm:hover {
+        color: #fff;
+        background: #b07cff;
+        border-color: #b07cff;
+    }
+}
+
+/* =====================================================================
+   9. INPUTS AND BUTTONS
+   ===================================================================== */
+.support-screen .form-control {
+    height: var(--field-h);
+    padding: 0 20px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.62);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    box-shadow:
+        inset 0 2px 6px rgba(120, 50, 110, 0.12),
+        0 2px 8px rgba(120, 50, 110, 0.08);
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.25s var(--ease-soft);
+}
+
+.support-screen .form-control::placeholder {
+    color: var(--ink-muted);
+    font-weight: 600;
+}
+
+.support-screen .form-control:focus {
+    outline: 0;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.88);
+    border-color: var(--candy-pink);
+    box-shadow:
+        inset 0 2px 6px rgba(120, 50, 110, 0.10),
+        0 0 0 4px rgba(255, 111, 165, 0.25);
+}
+
+/* Shared candy-button recipe: pill, gloss strip, inset lip */
+.support-screen .btn-primary,
+.support-screen .btn-secondary {
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    padding: 0 24px;
+    height: var(--field-h);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    transition:
+        transform 0.2s var(--ease-soft),
+        box-shadow 0.2s var(--ease-soft),
+        filter 0.2s ease;
+}
+
+.support-screen .btn-primary::before,
+.support-screen .btn-secondary::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+/* Send: strawberry */
+.support-screen .btn-primary {
+    background: linear-gradient(180deg, #ff7fb3 0%, #ff4f8b 55%, #ec3b78 100%);
+    box-shadow:
+        0 8px 18px rgba(236, 59, 120, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+/* Add to Presets: lilac */
+.support-screen .btn-secondary {
+    background: linear-gradient(180deg, #d7b8ff 0%, #b07cff 55%, #9a5cf5 100%);
+    box-shadow:
+        0 8px 18px rgba(154, 92, 245, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .support-screen .btn-primary:hover,
+    .support-screen .btn-secondary:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+}
+
+.support-screen .btn-primary:active,
+.support-screen .btn-secondary:active {
+    color: #fff;
+    transform: translateY(1px) scale(0.97);
+    transition-duration: 0.08s;
+}
+
+.support-screen .btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--candy-pink-deep);
+}
+
+/* =====================================================================
+   10. ACTIONS
+   Placeholder buttons (disabled for now) as frosted pills.
+   ===================================================================== */
+.support-screen .actions-panel .btn-outline-secondary {
+    padding: 10px 12px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.55);
+    border: 1.5px dashed rgba(140, 122, 138, 0.45);
+    border-radius: 999px;
+}
+
+.support-screen .actions-panel .btn-outline-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---- "Hint sent" confirmation (created by support-screen.js) ---- */
+.hint-toast {
+    position: fixed;
+    left: 50%;
+    bottom: clamp(16px, 4vh, 34px);
+    z-index: 20;
+    transform: translate(-50%, 14px);
+
+    padding: 11px 22px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    color: #0e4d3a;
+    background: linear-gradient(180deg, #a8f5dc 0%, #5ee0b6 55%, #3bc79c 100%);
+    border-radius: 999px;
+    box-shadow:
+        0 10px 24px rgba(59, 199, 156, 0.38),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s var(--ease-soft);
+}
+
+.hint-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* Something went wrong: cherry instead of mint */
+.hint-toast.is-error {
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(180deg, #ff8090 0%, #e02744 52%, #b3122c 100%);
+    box-shadow:
+        0 10px 24px rgba(215, 38, 61, 0.38),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+/* =====================================================================
+   11. RESPONSIVE DESIGN
+   ===================================================================== */
+@media (max-width: 560px) {
+    .support-screen { border-radius: 26px; }
+
+    /* Input on its own line, button full width underneath */
+    .support-screen .hint-panel form.d-flex { flex-wrap: wrap; }
+    .support-screen .hint-panel form.d-flex .btn { flex: 1 1 100%; }
+
+    .support-screen .status-bar { padding: 10px 16px !important; }
+
+    /* Three control buttons share the row evenly */
+    .timer-controls { gap: 8px; flex-wrap: nowrap; }
+    .timer-btn { flex: 1 1 0; min-width: 0; padding: 0 10px; font-size: 15px; }
+
+    /* Let the nav links wrap instead of pushing the page sideways */
+    body > nav.navbar { flex-wrap: wrap; justify-content: center; row-gap: 2px; }
+    body > nav.navbar .navbar-nav { flex-wrap: wrap; justify-content: center; }
+    body > nav.navbar .navbar-brand { margin-right: 0; }
+    body > nav.navbar .nav-link { padding: 4px 10px; font-size: 14px; }
+}
+
+@media (max-width: 380px) {
+    .support-screen .actions-panel .btn-outline-secondary { font-size: 13px; padding: 9px 6px; }
+}
+
+/* =====================================================================
+   12. REDUCED MOTION
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .support-screen .btn,
+    .timer-btn,
+    .hint-toast,
+    .support-screen .form-control,
+    body > nav.navbar .nav-link { transition: none !important; }
+}
+
+/* Shown instead of the carousel when the hints table has no presets yet */
+.preset-empty {
+    font-weight: 600;
+    font-style: italic;
+    color: var(--ink-muted);
+}
+
+/* ---- Action buttons that play a sound on the Player Screen ---- */
+.action-btn {
+    position: relative;
+    overflow: hidden;
+    padding: 10px 12px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    transition:
+        transform 0.2s var(--ease-soft),
+        box-shadow 0.2s var(--ease-soft),
+        filter 0.2s ease;
+}
+
+/* Gloss highlight, same as the other candy buttons */
+.action-btn::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+/* Congratulation: mint, like the Start button */
+.action-congrats {
+    color: #0e4d3a;
+    text-shadow: none;
+    background: linear-gradient(180deg, #a8f5dc 0%, #5ee0b6 55%, #3bc79c 100%);
+    box-shadow:
+        0 8px 18px rgba(59, 199, 156, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.10) inset;
+}
+
+/* Warning: cherry */
+.action-warning {
+    background: linear-gradient(180deg, #ff8090 0%, #e02744 52%, #b3122c 100%);
+    box-shadow:
+        0 8px 18px rgba(215, 38, 61, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .action-btn:hover {
+        color: inherit;
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+    .action-congrats:hover { color: #0e4d3a; }
+    .action-warning:hover { color: #fff; }
+}
+
+.action-btn:active { transform: translateY(1px) scale(0.97); transition-duration: 0.08s; }
+
+.action-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--candy-pink-deep);
+}
+
+@media (max-width: 560px) {
+    .action-btn { font-size: 13px; padding: 9px 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .action-btn { transition: none; }
+}
+
+/* Failed: muted plum, so it reads as "something went wrong" without
+   competing with the red Warning button */
+.action-failed {
+    background: linear-gradient(180deg, #b49ab1 0%, #866b84 55%, #634c62 100%);
+    box-shadow:
+        0 8px 18px rgba(99, 76, 98, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.45) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .action-failed:hover { color: #fff; }
+}
