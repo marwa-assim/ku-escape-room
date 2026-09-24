@@ -1,0 +1,82 @@
+<?php
+$extraCss = 'css/login-style.css';
+$extraJs = 'javascript/login-screen.js';
+require('template/header.phtml') ?>
+    <!--
+    * Login Page Template (login.phtml)
+    *
+    * Support team login form
+    *
+    * Author: Eshraq Ebrahim
+    * Version: 1.0
+    -->
+
+    <!-- Decorative background layers (purely visual, never receive pointer events) -->
+    <div class="bg-blobs" aria-hidden="true">
+        <span class="blob blob-1"></span>
+        <span class="blob blob-2"></span>
+        <span class="blob blob-3"></span>
+        <span class="blob blob-4"></span>
+    </div>
+    <div class="candy-rain" id="candy-rain" aria-hidden="true"></div>
+
+    <!-- Login Section -->
+    <section class="login-section py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-5">
+
+                <!-- Login Card -->
+                <div class="login-card p-4">
+
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="login-icon display-5 mb-3">
+                            🔐
+                        </div>
+                        <h2 class="fw-bold mb-2">Support Login</h2>
+                        <p class="text-muted">Sign in to access the support team hint panel</p>
+                    </div>
+
+                    <!-- Error Message (not wired up yet) -->
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger" role="alert">
+                            <?php echo htmlspecialchars($error); ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Login Form -->
+                    <form method="POST" action="login.php" class="login-form">
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   required
+                                   autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 my-2">
+                            Sign In
+                        </button>
+
+                    </form>
+
+                </div>
+                <!-- End Login Card -->
+
+            </div>
+        </div>
+    </section>
+
+<?php require('template/footer.phtml') ?>
