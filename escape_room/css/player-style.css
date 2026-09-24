@@ -1,0 +1,729 @@
+/* =====================================================================
+   PLAYER SCREEN — Candy / lollipop visual theme
+   ---------------------------------------------------------------------
+   Styling, layout and responsive behaviour for the player screen only.
+   Purely presentational: the countdown/progress behaviour lives in
+   player-screen.js and the page logic stays in PHP.
+
+   The palette, glass panel, background wash and easing curves are the
+   same ones used by the candy puzzle game so both screens read as one
+   application.
+
+   Sections:
+     1. Global tokens
+     2. Background
+     3. Main container (glass panel)
+     4. Page title
+     5. Timer
+     6. Progress bar
+     7. Candy indicator
+     8. Hints
+     9. Animations
+    10. Responsive design
+    11. Reduced motion
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap");
+
+/* =====================================================================
+   1. GLOBAL TOKENS
+   ===================================================================== */
+:root {
+    /* Palette (shared with the candy puzzle game) */
+    --candy-pink: #ff6fa5;
+    --candy-pink-deep: #e0407c;
+    --candy-mint: #6fe3c2;
+    --candy-lemon: #ffe27a;
+    --candy-peach: #ffb58a;
+    --candy-lilac: #c8b6ff;
+    --candy-cream: #fff7ee;
+    --candy-cherry: #d7263d;
+    --ink: #3a2438;
+    --ink-soft: #6c5069;
+    --ink-muted: #8c7a8a;
+
+    /* Glass */
+    --glass-bg: rgba(255, 255, 255, 0.42);
+    --glass-border: rgba(255, 255, 255, 0.75);
+    --glass-shadow: 0 30px 70px rgba(120, 50, 110, 0.22), 0 4px 14px rgba(120, 50, 110, 0.10);
+
+    /* Sizing — viewport-height aware so the whole screen fits at 100% zoom */
+    --panel-w: 820px;
+    --panel-pad-y: clamp(16px, 2.8vh, 30px);
+    --panel-pad-x: clamp(16px, 4vw, 38px);
+
+    --space-xs: clamp(4px, 0.8vh, 8px);
+    --space-sm: clamp(8px, 1.4vh, 14px);
+    --space-md: clamp(12px, 2.2vh, 24px);
+
+    --track-h: clamp(20px, 3.4vh, 34px);
+    --candy-size: clamp(40px, min(10vw, 7vh), 64px);
+    --flag-w: clamp(26px, 4.4vh, 40px);
+    --rail-gap: clamp(8px, 1.4vw, 14px);
+
+    /* Motion */
+    --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --font-display: "Fredoka", "Nunito", "Segoe UI Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-body: "Nunito", "Fredoka", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* =====================================================================
+   2. BACKGROUND
+   Same candy-shop wash, sugar grain, drifting blobs and falling wrapped
+   candies as the puzzle game.
+   ===================================================================== */
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow-x: hidden;
+    position: relative;
+
+    background:
+        radial-gradient(1200px 700px at 8% 12%, rgba(255, 178, 210, 0.75), transparent 60%),
+        radial-gradient(1000px 700px at 92% 18%, rgba(255, 224, 150, 0.70), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(150, 236, 215, 0.70), transparent 60%),
+        linear-gradient(160deg, #ffe4f0 0%, #fff2e6 45%, #e6fbf4 100%);
+    background-attachment: fixed;
+}
+
+/* Faint sugar-sprinkle texture on top of the wash */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
+        radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
+    background-size: 34px 34px, 54px 54px;
+    background-position: 0 0, 17px 27px;
+    opacity: 0.55;
+    z-index: 0;
+}
+
+/* ---- Soft coloured lights behind the glass ---- */
+.bg-blobs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.75;
+    animation: blobDrift 18s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.blob-1 { width: 42vmax; height: 42vmax; left: -12vmax; top: -10vmax;  background: #ff9cc7; }
+.blob-2 { width: 36vmax; height: 36vmax; right: -10vmax; top: 6vmax;   background: #ffd47a; animation-delay: -6s; }
+.blob-3 { width: 40vmax; height: 40vmax; left: 20vmax; bottom: -18vmax; background: #8ef0d0; animation-delay: -11s; }
+.blob-4 { width: 26vmax; height: 26vmax; right: 18vmax; bottom: -6vmax; background: #d2bfff; animation-delay: -3s; }
+
+/* ---- Falling wrapped candies (seeded by player-screen.js) ---- */
+.candy-rain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.wrapped-candy {
+    --s: 36px;
+    --c1: #ff6fa5;
+    --c2: #ffd1e5;
+    --dur: 14s;
+    --delay: 0s;
+    --x: 50%;
+    --rot: 0deg;
+    --op: 0.8;
+    --spin: 1;
+
+    position: absolute;
+    top: -12vh;
+    left: var(--x);
+    width: var(--s);
+    height: calc(var(--s) * 0.56);
+    opacity: var(--op);
+    animation: candyFall var(--dur) linear var(--delay) infinite;
+    will-change: transform;
+    filter: drop-shadow(0 6px 10px rgba(90, 40, 80, 0.18));
+}
+
+/* Candy body — also reused by the progress indicator */
+.wc-body {
+    position: absolute;
+    left: 22%;
+    right: 22%;
+    top: 0;
+    bottom: 0;
+    border-radius: 50% / 48%;
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85) 0 12%, transparent 40%),
+        repeating-linear-gradient(115deg, var(--c1) 0 22%, var(--c2) 22% 40%);
+    box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Twisted wrapper ends */
+.wrapped-candy::before,
+.wrapped-candy::after {
+    content: "";
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    width: 24%;
+    background: linear-gradient(180deg, var(--c2), var(--c1));
+    opacity: 0.95;
+}
+.wrapped-candy::before { left: 0;  clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%, 25% 50%); }
+.wrapped-candy::after  { right: 0; clip-path: polygon(100% 0, 0 35%, 0 65%, 100% 100%, 75% 50%); }
+
+/* =====================================================================
+   3. MAIN CONTAINER (glass panel)
+   ===================================================================== */
+
+/* Neutralise the Bootstrap wrapper from header.phtml so the page title
+   and the panel stack in the centre of the viewport.
+   The !important beats the .mt-4 utility class. */
+body > main.container {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 2.2vh, 24px);
+    width: 100%;
+    max-width: none;
+    margin-top: 0 !important;
+    padding: clamp(10px, 2vh, 24px) clamp(10px, 2vw, 18px);
+    position: relative;
+    z-index: 1;
+}
+
+.player-screen {
+    --progress-ratio: 0;            /* 0 = start, 1 = finish (set by JS) */
+
+    width: min(100%, var(--panel-w));
+    padding: var(--panel-pad-y) var(--panel-pad-x);
+    text-align: center;
+
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+
+    position: relative;
+    animation: panelIn 0.7s var(--ease-soft) both;
+}
+
+/* Soft top-light sheen across the glass */
+.player-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.25) 100%);
+    z-index: 0;
+}
+
+.player-screen > * { position: relative; z-index: 1; }
+
+/* =====================================================================
+   4. PAGE TITLE
+   Floats in the background above the glass panel. Slight blur, lowered
+   opacity and softly faded ends make it feel further away than the sharp
+   panel, while it stays easy to read. Text only, no icon.
+   ===================================================================== */
+.page-title {
+    max-width: min(100%, var(--panel-w));
+    margin: 0;
+    padding: 0 clamp(8px, 2vw, 24px);
+    text-align: center;
+    text-wrap: balance;
+
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, min(7vw, 5.6vh), 54px);
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+
+    background: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+    opacity: 0.8;
+    filter:
+        blur(0.9px)
+        drop-shadow(0 2px 0 rgba(255, 255, 255, 0.55))
+        drop-shadow(0 0 16px rgba(255, 111, 165, 0.55));
+
+    /* Ends of the line fade out a little */
+    -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.45) 0%, #000 22%, #000 78%, rgba(0, 0, 0, 0.45) 100%);
+    mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.45) 0%, #000 22%, #000 78%, rgba(0, 0, 0, 0.45) 100%);
+
+    animation: titleIn 0.9s var(--ease-soft) both, titleBreathe 6s ease-in-out 0.9s infinite alternate;
+}
+
+/* =====================================================================
+   5. TIMER
+   ===================================================================== */
+.timer-section { margin-top: 0; }
+
+.timer-label {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(12px, 2vh, 16px);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.timer-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(4px, 1vw, 12px);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(40px, min(12vw, 10vh), 100px);
+    line-height: 1;
+}
+
+/* Each pair of digits sits in its own glossy candy pill, dressed the same
+   way as the candy buttons in the puzzle game. */
+.timer-seg {
+    position: relative;
+    isolation: isolate;
+    /* em-based so the pill grows with the digits */
+    min-width: 1.7em;
+    padding: 0.13em 0.2em;
+    border-radius: 0.3em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, #ff9cc7 0%, #ff5c97 52%, #ec3b78 100%);
+    box-shadow:
+        0 10px 22px rgba(236, 59, 120, 0.38),
+        0 2px 4px rgba(120, 50, 110, 0.16),
+        inset 0 2px 0 rgba(255, 255, 255, 0.60),
+        inset 0 -5px 0 rgba(0, 0, 0, 0.14),
+        0 0 0 3px rgba(255, 255, 255, 0.60);
+    text-shadow: 0 2px 3px rgba(150, 20, 70, 0.45);
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Gloss highlight across the top of the pill.
+   z-index -1 keeps both pseudos above the pill background but behind the
+   digits, so the numbers never get washed out. */
+.timer-seg::before {
+    content: "";
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: 3px;
+    height: 40%;
+    z-index: -1;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.04));
+}
+
+/* Candy-cane stripes, matching the ones on the progress fill */
+.timer-seg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: repeating-linear-gradient(115deg,
+        rgba(255, 255, 255, 0.16) 0 7px,
+        rgba(255, 255, 255, 0) 7px 18px);
+}
+
+.timer-sep {
+    color: var(--candy-pink-deep);
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.75);
+    animation: sepBlink 2s ease-in-out infinite;
+}
+
+/* Last minute: the pills turn cherry and the whole clock pulses */
+.player-screen.is-ending .timer-seg {
+    background: linear-gradient(180deg, #ff8090 0%, #e02744 52%, #b3122c 100%);
+    box-shadow:
+        0 10px 24px rgba(215, 38, 61, 0.42),
+        0 2px 4px rgba(120, 50, 110, 0.16),
+        inset 0 2px 0 rgba(255, 255, 255, 0.55),
+        inset 0 -5px 0 rgba(0, 0, 0, 0.16),
+        0 0 0 3px rgba(255, 255, 255, 0.60);
+}
+
+.player-screen.is-ending .timer-sep { color: var(--candy-cherry); }
+.player-screen.is-ending .timer-value { animation: timerPulse 1s var(--ease-soft) infinite; }
+
+/* Time is up: hold the cherry pills and stop moving */
+.player-screen.is-finished .timer-value { animation: none; }
+.player-screen.is-finished .timer-sep { animation: none; color: var(--candy-cherry); }
+.player-screen.is-finished .timer-seg {
+    background: linear-gradient(180deg, #ff8090 0%, #e02744 52%, #b3122c 100%);
+}
+
+/* =====================================================================
+   6. PROGRESS BAR
+   ===================================================================== */
+/* Bar first, labels underneath (order only, markup unchanged) */
+.progress-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: clamp(18px, 3.4vh, 36px);
+}
+
+.progress-rail { order: 1; }
+.progress-labels { order: 2; }
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-top: var(--space-sm);
+    /* Line the labels up with the track itself, not the flag beside it,
+       so START/PROGRESS/FINISH sit under the start, middle and end of the bar */
+    padding-right: calc(var(--flag-w) + var(--rail-gap));
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(11px, 1.9vh, 15px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+}
+
+.progress-label.is-progress { color: var(--candy-pink-deep); }
+
+.progress-rail {
+    display: flex;
+    align-items: center;
+    gap: var(--rail-gap);
+    /* Head-room so the bigger candy never touches the timer or the labels */
+    padding: calc((var(--candy-size) * 0.56 - var(--track-h)) / 2 + 2px) 0;
+}
+
+/* The candy is positioned against this box, so it can never leave the bar */
+.progress-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.progress-track {
+    height: var(--track-h);
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+        inset 0 2px 6px rgba(120, 50, 110, 0.18),
+        0 2px 8px rgba(120, 50, 110, 0.10);
+}
+
+/* Elapsed portion. Width comes straight from the shared --progress-ratio,
+   so it can never drift out of step with the timer or the candy. */
+.progress-fill {
+    position: relative;
+    height: 100%;
+    width: calc(var(--progress-ratio) * 100%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ffb3d1 0%, #ff6fa5 38%, #ffb58a 72%, #ffd42e 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.10),
+        0 0 14px 2px rgba(255, 111, 165, 0.45);
+    transition: width 1s linear;
+}
+
+/* Candy-cane stripes drifting along the filled part */
+.progress-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: repeating-linear-gradient(115deg,
+        rgba(255, 255, 255, 0.38) 0 10px,
+        rgba(255, 255, 255, 0) 10px 24px);
+    animation: candyStripes 1.6s linear infinite;
+}
+
+.finish-flag {
+    flex: 0 0 var(--flag-w);
+    width: var(--flag-w);
+    text-align: center;
+    font-size: calc(var(--flag-w) * 0.8);
+    line-height: 1;
+    filter: drop-shadow(0 3px 4px rgba(90, 40, 80, 0.30));
+    transition: transform 0.4s var(--ease-pop);
+}
+
+.player-screen.is-finished .finish-flag {
+    transform: scale(1.18) rotate(-8deg);
+}
+
+/* =====================================================================
+   7. CANDY INDICATOR
+   Same wrapped-candy artwork as the falling decorations, so the marker
+   belongs to the same sweet shop as the puzzle game.
+   ===================================================================== */
+.candy-marker {
+    --c1: #ff5c8d;
+    --c2: #ffd6e4;
+
+    position: absolute;
+    top: 50%;
+    /* Half a candy in from each end, so it always stays inside the track */
+    left: calc((var(--candy-size) / 2) + (100% - var(--candy-size)) * var(--progress-ratio));
+    width: var(--candy-size);
+    height: calc(var(--candy-size) * 0.56);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 2;
+    transition: left 1s linear;
+}
+
+/* Inner element carries the spin so it never fights the positioning transform */
+.candy-spinner {
+    position: absolute;
+    inset: 0;
+    filter: drop-shadow(0 5px 8px rgba(90, 40, 80, 0.34));
+    animation: candySpin 7s linear infinite;
+}
+
+.candy-spinner::before,
+.candy-spinner::after {
+    content: "";
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    width: 24%;
+    background: linear-gradient(180deg, var(--c2), var(--c1));
+    opacity: 0.95;
+}
+.candy-spinner::before { left: 0;  clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%, 25% 50%); }
+.candy-spinner::after  { right: 0; clip-path: polygon(100% 0, 0 35%, 0 65%, 100% 100%, 75% 50%); }
+
+/* Time is up, or the timer is stopped / waiting for Start:
+   the candy holds its position and stops turning */
+.player-screen.is-finished .candy-spinner,
+.player-screen.is-finished .progress-fill::after,
+.player-screen.is-paused .candy-spinner,
+.player-screen.is-paused .progress-fill::after {
+    animation-play-state: paused;
+}
+
+/* =====================================================================
+   8. HINTS
+   ===================================================================== */
+/* Hidden until the Support Panel sends a hint (player-screen.js adds
+   .is-visible, and removes it when the hint's time runs out) */
+.hint-section { display: none; }
+
+.hint-section.is-visible {
+    display: block;
+    animation: hintPanelIn 0.55s var(--ease-pop) both;
+}
+
+.hint-section {
+    margin-top: var(--space-md);
+    padding: var(--space-sm) clamp(12px, 2vw, 20px) clamp(12px, 2vh, 18px);
+    text-align: left;
+
+    background: rgba(255, 255, 255, 0.46);
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    border-radius: 22px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.9),
+        0 8px 20px rgba(120, 50, 110, 0.12);
+}
+
+.hint-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 var(--space-xs);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(12px, 1.9vh, 15px);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.hint-title::before {
+    content: "🍬";
+    font-size: 1.15em;
+    letter-spacing: 0;
+}
+
+.hint-title::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1.5px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(224, 64, 124, 0.35), rgba(224, 64, 124, 0));
+}
+
+/* Only this box scrolls, so a long hint list never scrolls the whole page */
+.hint-box {
+    max-height: clamp(90px, 17vh, 160px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 6px;
+    font-size: clamp(13px, 1.9vh, 15.5px);
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--ink);
+    scrollbar-width: thin;
+    scrollbar-color: var(--candy-pink) rgba(255, 255, 255, 0.5);
+}
+
+/* Whatever hint markup the backend renders, give each entry a soft divider */
+.hint-box > * {
+    margin: 0;
+    padding: clamp(7px, 1.2vh, 11px) 0;
+    border-bottom: 1.5px dashed rgba(224, 64, 124, 0.22);
+    animation: hintIn 0.45s var(--ease-soft) both;
+}
+
+.hint-box > *:last-child { border-bottom: 0; }
+
+/* Candy-coloured scrollbar */
+.hint-box::-webkit-scrollbar { width: 8px; }
+.hint-box::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.5); border-radius: 999px; }
+.hint-box::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff9cc7, #ff6fa5);
+    border-radius: 999px;
+}
+.hint-box::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #ff6fa5, #e0407c); }
+
+/* =====================================================================
+   9. ANIMATIONS
+   ===================================================================== */
+@keyframes panelIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes blobDrift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+}
+
+@keyframes candyFall {
+    0%   { transform: translate3d(0, 0, 0) rotate(var(--rot)); }
+    100% { transform: translate3d(calc(var(--spin) * 6vw), 125vh, 0) rotate(calc(var(--rot) + var(--spin) * 340deg)); }
+}
+
+/* Slow, elegant "loading" turn for the progress candy */
+@keyframes candySpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes candyStripes {
+    from { background-position: 0 0; }
+    to   { background-position: 48px 0; }
+}
+
+/* Page title drifts in, then slowly "breathes" in and out of focus */
+@keyframes titleIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 0.8; transform: none; }
+}
+
+@keyframes titleBreathe {
+    from { opacity: 0.8; }
+    to   { opacity: 0.62; }
+}
+
+@keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.035); }
+}
+
+@keyframes sepBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+
+@keyframes hintIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* A hint has just arrived: the panel pops into view */
+@keyframes hintPanelIn {
+    0%   { opacity: 0; transform: translateY(14px) scale(0.96); }
+    60%  { opacity: 1; transform: translateY(0) scale(1.02); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+   10. RESPONSIVE DESIGN
+   Sizing is viewport-driven through the clamp() tokens in :root, so only
+   small cosmetic adjustments are needed at narrow widths.
+   ===================================================================== */
+@media (max-width: 720px) {
+    .hint-box { max-height: clamp(90px, 20vh, 150px); }
+}
+
+@media (max-width: 560px) {
+    .player-screen { border-radius: 26px; }
+    .progress-labels { letter-spacing: 0.08em; }
+    .timer-seg { min-width: 1.55em; padding-left: 0.14em; padding-right: 0.14em; }
+}
+
+@media (max-width: 380px) {
+    .progress-labels { font-size: 10px; }
+    .hint-title { letter-spacing: 0.1em; }
+}
+
+/* Very short screens (laptops at 100% zoom, landscape phones) */
+@media (max-height: 620px) {
+    .hint-box { max-height: clamp(70px, 16vh, 110px); }
+}
+
+/* =====================================================================
+   11. REDUCED MOTION
+   Decoration stops; the timer, bar and candy position keep working.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .blob,
+    .wrapped-candy,
+    .player-screen,
+    .page-title,
+    .candy-spinner,
+    .progress-fill::after,
+    .hint-box > *,
+    .hint-section.is-visible,
+    .timer-sep,
+    .player-screen.is-ending .timer-value { animation: none !important; }
+
+    .progress-fill,
+    .candy-marker,
+    .finish-flag { transition: none !important; }
+}

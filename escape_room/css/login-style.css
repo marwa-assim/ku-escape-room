@@ -1,0 +1,588 @@
+/* =====================================================================
+   SUPPORT LOGIN — Candy / lollipop visual theme
+   ---------------------------------------------------------------------
+   Styling, layout and responsive behaviour for the login page only.
+   Purely presentational: the form, its fields and the error handling
+   stay exactly as login.phtml / login.php render them. This file only
+   dresses the existing Bootstrap markup.
+
+   Same palette, glass, background wash and easing as the player screen
+   and the candy puzzle game, so all three read as one application.
+
+   Sections:
+     1. Global tokens
+     2. Background
+     3. Navigation bar
+     4. Page layout
+     5. Login card (glass panel)
+     6. Card header (lollipop badge, title)
+     7. Form fields
+     8. Sign-in button
+     9. Error message
+    10. Animations
+    11. Responsive design
+    12. Reduced motion
+   ===================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap");
+
+/* =====================================================================
+   1. GLOBAL TOKENS
+   ===================================================================== */
+:root {
+    /* Palette (shared with the player screen and the puzzle game) */
+    --candy-pink: #ff6fa5;
+    --candy-pink-deep: #e0407c;
+    --candy-mint: #6fe3c2;
+    --candy-lemon: #ffe27a;
+    --candy-peach: #ffb58a;
+    --candy-lilac: #c8b6ff;
+    --candy-cream: #fff7ee;
+    --candy-cherry: #d7263d;
+    --ink: #3a2438;
+    --ink-soft: #6c5069;
+    --ink-muted: #8c7a8a;
+
+    /* Glass */
+    --glass-bg: rgba(255, 255, 255, 0.42);
+    --glass-border: rgba(255, 255, 255, 0.75);
+    --glass-shadow: 0 30px 70px rgba(120, 50, 110, 0.22), 0 4px 14px rgba(120, 50, 110, 0.10);
+
+    /* Sizing — viewport-height aware so the card fits at 100% zoom */
+    --card-w: 440px;
+    --card-pad-y: clamp(22px, 3.6vh, 36px);
+    --card-pad-x: clamp(20px, 5vw, 38px);
+    --badge: clamp(62px, 9.5vh, 82px);
+    --stick-h: clamp(16px, 2.6vh, 24px);
+    --field-h: clamp(44px, 6vh, 50px);
+
+    /* Motion */
+    --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    --font-display: "Fredoka", "Nunito", "Segoe UI Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --font-body: "Nunito", "Fredoka", "Segoe UI", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* =====================================================================
+   2. BACKGROUND
+   Same candy-shop wash, sugar grain, drifting blobs and falling wrapped
+   candies as the player screen.
+   ===================================================================== */
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body);
+    color: var(--ink);
+    overflow-x: hidden;
+    position: relative;
+
+    background:
+        radial-gradient(1200px 700px at 8% 12%, rgba(255, 178, 210, 0.75), transparent 60%),
+        radial-gradient(1000px 700px at 92% 18%, rgba(255, 224, 150, 0.70), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, rgba(150, 236, 215, 0.70), transparent 60%),
+        linear-gradient(160deg, #ffe4f0 0%, #fff2e6 45%, #e6fbf4 100%);
+    background-attachment: fixed;
+}
+
+/* Faint sugar-sprinkle texture on top of the wash */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1.5px),
+        radial-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1.5px);
+    background-size: 34px 34px, 54px 54px;
+    background-position: 0 0, 17px 27px;
+    opacity: 0.55;
+    z-index: 0;
+}
+
+/* ---- Soft coloured lights behind the glass ---- */
+.bg-blobs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.75;
+    animation: blobDrift 18s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+.blob-1 { width: 42vmax; height: 42vmax; left: -12vmax; top: -10vmax;  background: #ff9cc7; }
+.blob-2 { width: 36vmax; height: 36vmax; right: -10vmax; top: 6vmax;   background: #ffd47a; animation-delay: -6s; }
+.blob-3 { width: 40vmax; height: 40vmax; left: 20vmax; bottom: -18vmax; background: #8ef0d0; animation-delay: -11s; }
+.blob-4 { width: 26vmax; height: 26vmax; right: 18vmax; bottom: -6vmax; background: #d2bfff; animation-delay: -3s; }
+
+/* ---- Falling wrapped candies (seeded by login-screen.js) ---- */
+.candy-rain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.wrapped-candy {
+    --s: 36px;
+    --c1: #ff6fa5;
+    --c2: #ffd1e5;
+    --dur: 14s;
+    --delay: 0s;
+    --x: 50%;
+    --rot: 0deg;
+    --op: 0.8;
+    --spin: 1;
+
+    position: absolute;
+    top: -12vh;
+    left: var(--x);
+    width: var(--s);
+    height: calc(var(--s) * 0.56);
+    opacity: var(--op);
+    animation: candyFall var(--dur) linear var(--delay) infinite;
+    will-change: transform;
+    filter: drop-shadow(0 6px 10px rgba(90, 40, 80, 0.18));
+}
+
+.wrapped-candy .wc-body {
+    position: absolute;
+    left: 22%;
+    right: 22%;
+    top: 0;
+    bottom: 0;
+    border-radius: 50% / 48%;
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85) 0 12%, transparent 40%),
+        repeating-linear-gradient(115deg, var(--c1) 0 22%, var(--c2) 22% 40%);
+    box-shadow: inset -3px -4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Twisted wrapper ends */
+.wrapped-candy::before,
+.wrapped-candy::after {
+    content: "";
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    width: 24%;
+    background: linear-gradient(180deg, var(--c2), var(--c1));
+    opacity: 0.95;
+}
+.wrapped-candy::before { left: 0;  clip-path: polygon(0 0, 100% 35%, 100% 65%, 0 100%, 25% 50%); }
+.wrapped-candy::after  { right: 0; clip-path: polygon(100% 0, 0 35%, 0 65%, 100% 100%, 75% 50%); }
+
+/* =====================================================================
+   3. NAVIGATION BAR
+   The dark Bootstrap bar from header.phtml, turned into a candy glass
+   strip. .bg-dark is !important in Bootstrap, hence the !important here.
+   ===================================================================== */
+body > nav.navbar {
+    --bs-navbar-color: var(--ink-soft);
+    --bs-navbar-hover-color: var(--candy-pink-deep);
+    --bs-navbar-active-color: var(--candy-pink-deep);
+
+    position: relative;
+    z-index: 2;
+    font-family: var(--font-display);
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.45) !important;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.75);
+    box-shadow: 0 6px 20px rgba(120, 50, 110, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+}
+
+body > nav.navbar .navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    background: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+body > nav.navbar .nav-link {
+    border-radius: 999px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+/* The page we are on */
+body > nav.navbar .nav-link[href="login.php"] {
+    color: var(--candy-pink-deep);
+    background: rgba(255, 255, 255, 0.7);
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body > nav.navbar .nav-link:hover { background: rgba(255, 255, 255, 0.6); }
+}
+
+/* =====================================================================
+   4. PAGE LAYOUT
+   Centre the card in the space left under the navbar.
+   The !important beats the .mt-4 utility class on <main>.
+   ===================================================================== */
+body > main.container {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0 !important;
+    padding-top: clamp(8px, 2vh, 24px);
+    padding-bottom: clamp(8px, 2vh, 24px);
+    position: relative;
+    z-index: 1;
+}
+
+.login-section { width: 100%; }
+
+/* =====================================================================
+   5. LOGIN CARD (glass panel)
+   ===================================================================== */
+.login-card {
+    /* Recolours Bootstrap's .text-muted inside the card */
+    --bs-secondary-color: var(--ink-soft);
+
+    max-width: var(--card-w);
+    margin: 0 auto;
+    padding: var(--card-pad-y) var(--card-pad-x) !important;   /* beats .p-4 */
+
+    background: var(--glass-bg);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+
+    position: relative;
+    animation: panelIn 0.7s var(--ease-soft) both;
+}
+
+/* Soft top-light sheen across the glass */
+.login-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.25) 100%);
+    z-index: 0;
+}
+
+.login-card > * { position: relative; z-index: 1; }
+
+/* =====================================================================
+   6. CARD HEADER
+   The 🔐 icon becomes a strawberry lollipop: the same swirl, gloss and
+   stick as the pieces in the puzzle game.
+   ===================================================================== */
+.login-card .login-icon {
+    position: relative;
+    isolation: isolate;
+    width: var(--badge);
+    height: var(--badge);
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: calc(var(--stick-h) + 14px) !important;   /* room for the stick; beats .mb-3 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--badge) * 0.42);
+    line-height: 1;
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0) 0 30%, rgba(0, 0, 0, 0.06) 100%),
+        repeating-conic-gradient(from -20deg at 50% 50%, #ff5c8d 0deg 20deg, #ffd6e4 20deg 40deg, #e0336b 40deg 45deg);
+    box-shadow:
+        0 10px 22px rgba(70, 35, 65, 0.22),
+        0 2px 4px rgba(70, 35, 65, 0.12),
+        inset 0 -8px 14px rgba(0, 0, 0, 0.16),
+        inset 0 6px 12px rgba(255, 255, 255, 0.35),
+        0 0 0 4px rgba(255, 255, 255, 0.55),
+        0 0 0 5.5px rgba(120, 90, 115, 0.12),
+        0 0 28px 6px rgba(255, 92, 141, 0.45);
+
+    transform-origin: 50% calc(100% + var(--stick-h));
+    animation: lollipopSway 4.5s ease-in-out infinite alternate;
+}
+
+/* Glossy highlight + frosted centre disc that keeps the icon readable.
+   z-index -1 sits above the swirl but behind the emoji. */
+.login-card .login-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.85) 0 9%, rgba(255, 255, 255, 0.35) 22%, rgba(255, 255, 255, 0) 42%),
+        radial-gradient(circle closest-side at 50% 50%, rgba(255, 255, 255, 0.62) 0 60%, rgba(255, 255, 255, 0.35) 64%, rgba(255, 255, 255, 0) 66%);
+}
+
+/* Lollipop stick */
+.login-card .login-icon::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% - 1px);
+    width: clamp(7px, 1.1vh, 10px);
+    height: var(--stick-h);
+    z-index: -1;
+    transform: translateX(-50%);
+    border-radius: 0 0 6px 6px;
+    background: linear-gradient(90deg, #f3e6d6 0%, #fffaf3 45%, #e5d2bd 100%);
+    box-shadow:
+        0 6px 10px rgba(80, 40, 70, 0.18),
+        inset 0 0 0 1px rgba(150, 120, 100, 0.25);
+}
+
+.login-card h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(24px, min(6.4vw, 4.2vh), 34px);
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    background: linear-gradient(120deg, #ff4f8b 0%, #ff8a5c 45%, #c65bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.7));
+}
+
+.login-card .text-muted {
+    font-size: clamp(13px, 1.9vh, 15px);
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+/* =====================================================================
+   7. FORM FIELDS
+   ===================================================================== */
+.login-card .form-label {
+    margin-bottom: 6px;
+    padding-left: 6px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(11px, 1.6vh, 12.5px);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.login-card .form-control {
+    height: var(--field-h);
+    padding: 0 20px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.62);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    box-shadow:
+        inset 0 2px 6px rgba(120, 50, 110, 0.12),
+        0 2px 8px rgba(120, 50, 110, 0.08);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.25s var(--ease-soft);
+}
+
+.login-card .form-control:focus {
+    outline: 0;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.88);
+    border-color: var(--candy-pink);
+    box-shadow:
+        inset 0 2px 6px rgba(120, 50, 110, 0.10),
+        0 0 0 4px rgba(255, 111, 165, 0.25),
+        0 6px 16px rgba(224, 64, 124, 0.18);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .login-card .form-control:hover:not(:focus) { border-color: rgba(255, 111, 165, 0.45); }
+}
+
+/* Keep browser autofill from painting the pill yellow/blue */
+.login-card .form-control:-webkit-autofill,
+.login-card .form-control:-webkit-autofill:hover,
+.login-card .form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--ink);
+    caret-color: var(--ink);
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+/* =====================================================================
+   8. SIGN-IN BUTTON
+   Strawberry candy button, same recipe as Restart in the puzzle game.
+   ===================================================================== */
+.login-card .btn-primary {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(10px, 1.6vh, 13px) 22px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.03em;
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ff7fb3 0%, #ff4f8b 55%, #ec3b78 100%);
+    box-shadow:
+        0 8px 18px rgba(236, 59, 120, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        transform 0.2s var(--ease-soft),
+        box-shadow 0.2s var(--ease-soft),
+        filter 0.2s ease;
+}
+
+/* Gloss highlight */
+.login-card .btn-primary::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 42%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .login-card .btn-primary:hover {
+        color: #fff;
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+        box-shadow:
+            0 12px 24px rgba(236, 59, 120, 0.42),
+            0 1px 0 rgba(255, 255, 255, 0.5) inset,
+            0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+    }
+}
+
+.login-card .btn-primary:active {
+    color: #fff;
+    transform: translateY(1px) scale(0.97);
+    transition-duration: 0.08s;
+    box-shadow:
+        0 4px 10px rgba(236, 59, 120, 0.30),
+        0 1px 0 rgba(255, 255, 255, 0.5) inset,
+        0 -2px 0 rgba(0, 0, 0, 0.12) inset;
+}
+
+.login-card .btn-primary:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--candy-pink-deep);
+}
+
+/* =====================================================================
+   9. ERROR MESSAGE
+   Cherry candy tint + a small shake, for the existing $error alert.
+   ===================================================================== */
+.login-card .alert-danger {
+    margin-bottom: 18px;
+    padding: 11px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.4;
+    text-align: center;
+    color: #8a1026;
+    background: linear-gradient(180deg, rgba(255, 220, 227, 0.92), rgba(255, 196, 208, 0.85));
+    border: 1.5px solid rgba(215, 38, 61, 0.28);
+    border-radius: 18px;
+    box-shadow:
+        0 6px 16px rgba(215, 38, 61, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    animation: errorShake 0.5s var(--ease-soft);
+}
+
+/* =====================================================================
+   10. ANIMATIONS
+   ===================================================================== */
+@keyframes panelIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+@keyframes blobDrift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(6vmax, 4vmax, 0) scale(1.08); }
+}
+
+@keyframes candyFall {
+    0%   { transform: translate3d(0, 0, 0) rotate(var(--rot)); }
+    100% { transform: translate3d(calc(var(--spin) * 6vw), 125vh, 0) rotate(calc(var(--rot) + var(--spin) * 340deg)); }
+}
+
+@keyframes lollipopSway {
+    from { transform: rotate(-6deg); }
+    to   { transform: rotate(6deg); }
+}
+
+@keyframes errorShake {
+    0%   { transform: translateX(0); }
+    20%  { transform: translateX(-6px); }
+    40%  { transform: translateX(6px); }
+    60%  { transform: translateX(-3px); }
+    80%  { transform: translateX(3px); }
+    100% { transform: translateX(0); }
+}
+
+/* =====================================================================
+   11. RESPONSIVE DESIGN
+   Sizing is viewport-driven through the clamp() tokens in :root, so only
+   small cosmetic adjustments are needed at narrow widths.
+   ===================================================================== */
+@media (max-width: 560px) {
+    .login-card { border-radius: 26px; }
+
+    /* Let the nav links wrap instead of pushing the page sideways */
+    body > nav.navbar { flex-wrap: wrap; justify-content: center; row-gap: 2px; }
+    body > nav.navbar .navbar-nav { flex-wrap: wrap; justify-content: center; }
+    body > nav.navbar .navbar-brand { margin-right: 0; }
+    body > nav.navbar .nav-link { padding: 4px 10px; font-size: 14px; }
+}
+
+@media (max-width: 380px) {
+    .login-card .form-label { letter-spacing: 0.08em; }
+    body > nav.navbar .nav-link { padding: 3px 8px; font-size: 13px; }
+}
+
+/* =====================================================================
+   12. REDUCED MOTION
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .blob,
+    .wrapped-candy,
+    .login-card,
+    .login-card .login-icon,
+    .login-card .alert-danger { animation: none !important; }
+
+    .login-card .form-control,
+    .login-card .btn-primary { transition: none !important; }
+}
