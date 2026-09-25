@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $pdo = Database::getConnection();
 
-        $stmt = $pdo->prepare('SELECT user_id, username, password FROM users WHERE LOWER(username) = LOWER(:username)');
+        $stmt = $pdo->prepare('SELECT user_id, username, password FROM Users WHERE LOWER(username) = LOWER(:username)');
         $stmt->execute(['username' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
