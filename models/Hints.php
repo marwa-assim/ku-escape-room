@@ -11,7 +11,7 @@ class Hints {
     public static function addPreset(string $text): void {
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare(
-            'INSERT INTO hints (user_id, room_id, hint_text) VALUES (:user_id, :room_id, :text)'
+            'INSERT INTO Hints (user_id, room_id, hint_text) VALUES (:user_id, :room_id, :text)'
         );
         $stmt->execute([
             'user_id' => $_SESSION['user_id'] ?? null,
