@@ -48,5 +48,19 @@ services:
         value: /var/data/game-state
     disk:
       name: game-state
+
+        - type: web
+    name: ku-escape-adminer
+    runtime: docker
+    plan: starter
+    rootDir: adminer
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ADMINER_DEFAULT_SERVER
+        fromService:
+          type: pserv
+          name: ku-escape-mysql
+          property: host
       mountPath: /var/data
       sizeGB: 1
