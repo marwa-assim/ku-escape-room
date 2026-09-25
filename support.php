@@ -1,7 +1,15 @@
 <?php
-
 // support.php
-$pageTitle = 'Support Panel';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Support panel is authenticated. Do this before processing any POST request,
+// because Hints::addPreset() needs the logged-in user's user_id.
+if (empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 require_once('models/Database.php');
 require_once('models/Hints.php');
@@ -20,6 +28,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_p
 }
 
 $presetHints = Hints::getAllPresets();
-
-
 require('views/support-screen.phtml');
