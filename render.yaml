@@ -48,8 +48,10 @@ services:
         value: /var/data/game-state
     disk:
       name: game-state
+      mountPath: /var/data
+      sizeGB: 1
 
-        - type: web
+  - type: web
     name: ku-escape-adminer
     runtime: docker
     plan: starter
@@ -62,5 +64,3 @@ services:
           type: pserv
           name: ku-escape-mysql
           property: host
-      mountPath: /var/data
-      sizeGB: 1
