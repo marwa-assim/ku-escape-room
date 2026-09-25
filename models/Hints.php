@@ -4,7 +4,7 @@ class Hints {
 
     public static function getAllPresets(): array {
         $pdo = Database::getConnection();
-        $stmt = $pdo->query('SELECT hint_text FROM hints ORDER BY hint_id ASC');
+        $stmt = $pdo->query('SELECT hint_text FROM Hints ORDER BY hint_id ASC');
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
