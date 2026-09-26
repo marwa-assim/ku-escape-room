@@ -22,7 +22,7 @@
 
 // Change this value to set the game duration in seconds (used by both screens).
 // Examples: 45 * 60 = 45 minutes, 60 * 60 = 1 hour, 90 * 60 = 90 minutes.
-const GAME_DURATION = 60 * 60; // 60 minutes
+const GAME_DURATION = 45 * 60; // 60 minutes
 
 $stateDir = getenv('STATE_DIR') ?: __DIR__;
 if (!is_dir($stateDir)) { @mkdir($stateDir, 0775, true); }
