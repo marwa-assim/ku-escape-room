@@ -20,9 +20,9 @@ const ingredientsNames = [
     'Orange'      // index 8
 ];
 
-const ANSWER_LOCK_SECONDS = 10; //60 seconds for testing only 
+//const ANSWER_LOCK_SECONDS = 10; //60 seconds for testing only 
 
-//const ANSWER_LOCK_SECONDS = 5 * 60; // 5 minutes, in seconds
+const ANSWER_LOCK_SECONDS = 5 * 60; // 5 minutes, in seconds
 const REPEAT_ANSWER_COOLDOWN = 60;      // every answer reveal after that: 1 minute
 let moveCount = 0;
 let gameStarted = false;
