@@ -1,0 +1,413 @@
+/* =====================================================================
+   PUZZLE PAGE — project additions only
+   ---------------------------------------------------------------------
+   The game's own styling lives in escape_room/game_css.css and is NOT
+   touched. This file only styles what the project adds on top of the
+   game, using the game's own candy palette so nothing looks out of place:
+
+     1. The "Back to Control Hub" link
+     2. The winner envelope (shown by puzzle-win.js when the puzzle is solved)
+     3. The demo "Solve puzzle" button
+     4. The periodic table on the letter
+   ===================================================================== */
+
+.back-to-hub {
+    position: fixed;
+    top: clamp(10px, 2vh, 18px);
+    left: clamp(10px, 2vw, 18px);
+    z-index: 5;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+
+    font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    color: #6c5069;
+
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(120, 50, 110, 0.10), inset 0 1px 0 #fff;
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
+
+    transition: color 0.2s ease, background 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .back-to-hub:hover {
+        color: #e0407c;
+        background: rgba(255, 255, 255, 0.8);
+        transform: translateY(-1px);
+    }
+}
+
+.back-to-hub:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #e0407c;
+}
+
+@media (max-width: 560px) {
+    .back-to-hub { padding: 6px 12px; font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .back-to-hub { transition: none; }
+}
+
+/* =====================================================================
+   2. WINNER ENVELOPE
+   Shown by puzzle-win.js when the puzzle is solved. Everything behind it
+   is blurred out, so only the envelope and its letter are readable.
+   Same candy colours and easing as the game itself.
+   ===================================================================== */
+.win-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    /* Blur the whole game behind the envelope */
+    background: rgba(58, 20, 52, 0.55);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+}
+
+.win-overlay.is-open {
+    display: flex;
+    animation: winFade 0.45s ease both;
+}
+
+/* ---- Sizes ----
+   --L is the width of the letter (the periodic table). The envelope and
+   the letter are both measured from it, so they always stay in proportion
+   and the whole thing fits on screen: never wider than 90% of the screen
+   or 1100px, and never taller than the screen. */
+.win-overlay {
+    --L: min(90vw, 1100px, calc((100vh - 40px) / 0.78));
+}
+
+/* ---- The envelope ----
+   Sits at the bottom of the screen with its lower part running off the
+   edge, so there is room above it for the letter to rise into. */
+.envelope {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--L) * -0.13);
+    margin: 0 auto;
+    width: calc(var(--L) * 1.1);
+    height: calc(var(--L) * 0.44);
+    perspective: 1600px;
+    animation: envelopeRise 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+/* Back of the envelope, behind the letter */
+.env-back {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ff9cc7 0%, #ff6fa5 60%, #ec3b78 100%);
+    box-shadow: 0 30px 60px rgba(90, 20, 70, 0.45);
+}
+
+/* Clips the letter at the envelope's bottom edge, open at the top */
+.letter-slot {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    -webkit-clip-path: inset(-3000px 0 0 0);
+    clip-path: inset(-3000px 0 0 0);
+}
+
+/* ---- The letter: carries the periodic table (section 4) ---- */
+.letter {
+    position: absolute;
+    left: 5%;
+    right: 5%;
+    /* Its bottom edge stays tucked into the pocket's corners */
+    bottom: 70%;
+    height: max(calc(var(--L) * 0.6), 400px);
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: calc(var(--L) * 0.01) calc(var(--L) * 0.01) calc(var(--L) * 0.03);
+
+    border-radius: 16px;
+    /* The candy-shop wash from the design, with its four colour glows */
+    background:
+        radial-gradient(440px 320px at 0% 0%, rgba(255, 156, 199, 0.55), transparent 70%),
+        radial-gradient(400px 320px at 100% 12%, rgba(255, 212, 122, 0.50), transparent 70%),
+        radial-gradient(480px 340px at 30% 112%, rgba(142, 240, 208, 0.50), transparent 70%),
+        radial-gradient(380px 300px at 88% 105%, rgba(210, 191, 255, 0.55), transparent 70%),
+        linear-gradient(135deg, #ffe4f0 0%, #fff2e6 50%, #e6fbf4 100%);
+    box-shadow:
+        0 -10px 30px rgba(90, 40, 80, 0.25),
+        inset 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+
+    /* Resting position: all the way out (the animation starts inside) */
+    transform: translateY(0);
+    animation: letterOut 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.95s both;
+}
+
+/* White sugar sprinkles over the letter */
+.letter::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        radial-gradient(rgba(255, 255, 255, 0.95) 1.2px, transparent 1.6px),
+        radial-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 1.4px);
+    background-size: 38px 38px, 57px 57px;
+    background-position: 0 0, 19px 27px;
+}
+
+/* ---- Front pocket: covers the bottom of the letter ---- */
+.env-front {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ff85b8 0%, #f2558f 55%, #d92f6c 100%);
+    -webkit-clip-path: polygon(0 22%, 50% 72%, 100% 22%, 100% 100%, 0 100%);
+    clip-path: polygon(0 22%, 50% 72%, 100% 22%, 100% 100%, 0 100%);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ---- Flap: opens backwards, then drops behind the letter ---- */
+.env-flap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 72%;
+    z-index: 0;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(180deg, #ffb3d1 0%, #ff6fa5 100%);
+    -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+
+    transform-origin: 50% 0%;
+    transform: rotateX(-172deg);
+    animation: flapOpen 0.55s ease 0.55s both;
+}
+
+/* =====================================================================
+   ANIMATIONS
+   ===================================================================== */
+@keyframes winFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Pops up from below the screen */
+@keyframes envelopeRise {
+    from { transform: translateY(130vh) rotate(-4deg); }
+    to   { transform: translateY(0) rotate(0); }
+}
+
+@keyframes flapOpen {
+    0%   { transform: rotateX(0deg); z-index: 4; }
+    70%  { transform: rotateX(-150deg); z-index: 4; }
+    100% { transform: rotateX(-172deg); z-index: 0; }
+}
+
+/* Starts one full letter-height lower, hidden inside the envelope */
+@keyframes letterOut {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+}
+
+/* =====================================================================
+   REDUCED MOTION
+   Nothing slides or pops; the envelope is simply open and readable.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .win-overlay.is-open,
+    .envelope,
+    .letter,
+    .env-flap { animation: none !important; }
+}
+
+/* =====================================================================
+   3. DEMO "SOLVE PUZZLE" BUTTON
+   Created by puzzle-win.js. Delete this block together with section 5 of
+   that file when the shortcut is no longer wanted.
+   ===================================================================== */
+.solve-demo-btn {
+    position: fixed;
+    right: clamp(10px, 2vw, 18px);
+    bottom: clamp(10px, 2vh, 18px);
+    z-index: 25;
+
+    padding: 9px 18px;
+    font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    background: linear-gradient(180deg, #d7b8ff 0%, #b07cff 55%, #9a5cf5 100%);
+    box-shadow:
+        0 8px 18px rgba(154, 92, 245, 0.35),
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 -3px 0 rgba(0, 0, 0, 0.12) inset;
+
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), filter 0.2s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .solve-demo-btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+}
+
+.solve-demo-btn:active { transform: translateY(1px) scale(0.97); }
+
+.solve-demo-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.solve-demo-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px #e0407c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .solve-demo-btn { transition: none; }
+}
+
+/* =====================================================================
+   4. PERIODIC TABLE ON THE LETTER
+   The letter that slides out of the envelope carries the periodic table.
+   The highlighted elements (Na and Cl) are glossy candy boxes; every
+   other element stays frosted grey. The boxes are built by
+   periodic-table.js.
+   ===================================================================== */
+
+/* Wrapped candies drifting behind the table */
+.sheet-candies {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Small screens scroll instead of squashing 18 columns */
+.pt-scroll {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+/* Box sizes below use cqi, so everything scales with this width */
+.pt-wrap {
+    min-width: 720px;
+    padding: 12px;
+    container-type: inline-size;
+}
+
+.pt-grid {
+    display: grid;
+    grid-template-columns: repeat(18, minmax(0, 1fr));
+    grid-template-rows: repeat(7, auto) 1.4cqi repeat(2, auto);
+    gap: 0.45cqi;
+    font-family: "Nunito", system-ui, sans-serif;
+}
+
+/* ---- A box: blank, frosted and grey, like a lollipop that is not selected ---- */
+.pt-cell {
+    position: relative;
+    z-index: 1;
+    aspect-ratio: 1;
+    box-sizing: border-box;
+
+    background: rgba(255, 255, 255, 0.42);
+    border: 2px solid rgba(58, 36, 56, 0.10);
+    border-radius: 1cqi;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pt-gloss {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 6%;
+    height: 34%;
+    border-radius: 0.8cqi 0.8cqi 50% 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0));
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ---- Highlighted: a glossy candy box that stands out and bobs ---- */
+.pt-cell.is-hot {
+    z-index: 2;
+    background: var(--f-bg);
+    border: 2.5px solid var(--f-ring);
+    box-shadow:
+        0 0 0 0.35cqi rgba(255, 255, 255, 0.7),
+        0 0.8cqi 2.2cqi var(--f-glow),
+        inset 0 -0.4cqi 0.8cqi rgba(58, 36, 56, 0.12);
+    transform: scale(1.14);
+    animation: ptBob 2.2s ease-in-out infinite;
+}
+
+.pt-cell.is-hot .pt-gloss { opacity: 1; }
+
+/* Candy flavours, in the order the elements are listed in periodic-table.js */
+.flavour-0 {   /* strawberry */
+    --f-bg: linear-gradient(145deg, #ffb3d3 0%, #ff6fa5 60%, #f2508c 100%);
+    --f-glow: rgba(255, 111, 165, 0.55);
+    --f-ring: #ffd1e4;
+}
+
+.flavour-1 {   /* mint */
+    --f-bg: linear-gradient(145deg, #b8f7e3 0%, #6fe3c2 60%, #45cfa8 100%);
+    --f-glow: rgba(111, 227, 194, 0.6);
+    --f-ring: #d6fbef;
+}
+
+.flavour-2 {   /* lemon */
+    --f-bg: linear-gradient(145deg, #fff1b0 0%, #ffe27a 60%, #ffd04a 100%);
+    --f-glow: rgba(255, 212, 122, 0.6);
+    --f-ring: #fff6cf;
+}
+
+.flavour-3 {   /* lilac */
+    --f-bg: linear-gradient(145deg, #e4dbff 0%, #c8b6ff 60%, #a992f5 100%);
+    --f-glow: rgba(200, 182, 255, 0.6);
+    --f-ring: #eee8ff;
+}
+
+/* Empty dashed boxes where the lanthanides and actinides are pulled out */
+.pt-marker {
+    aspect-ratio: 1;
+    border: 2px dashed rgba(58, 36, 56, 0.14);
+    border-radius: 1cqi;
+}
+
+/* Uses the separate translate property, so it adds to the scale(1.14) */
+@keyframes ptBob {
+    0%, 100% { translate: 0 0; }
+    50%      { translate: 0 -0.5cqi; }
+}
+
+/* Reduced motion: the highlighted boxes stay still */
+@media (prefers-reduced-motion: reduce) {
+    .pt-cell.is-hot { animation: none !important; }
+}
