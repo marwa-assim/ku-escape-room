@@ -1,6 +1,6 @@
 <?php
 $extraCss = ['css/game_css.css', 'css/puzzle-style.css'];
-$extraJs = ['javascript/script.js', 'javascript/candy_fx.js', 'javascript/puzzle-win.js', 'javascript/kiosk-hardening.js'];
+$extraJs = ['javascript/script.js', 'javascript/candy_fx.js', 'javascript/puzzle-win.js', 'javascript/periodic-table.js'];
 require('template/header.phtml');
 ?>
 
@@ -90,23 +90,30 @@ require('template/header.phtml');
 <!-- Added by the project: the winner envelope. It is shown by
      puzzle-win.js when the game's own "Secret Recipe Unlocked" message
      appears, and cleared when Support presses Refresh. -->
-<div class="win-overlay" id="win-overlay" aria-hidden="true">
-    <div class="envelope">
-        <span class="env-back" aria-hidden="true"></span>
+    <div class="win-overlay" id="win-overlay" aria-hidden="true">
+        <div class="envelope">
+            <span class="env-back" aria-hidden="true"></span>
 
-        <!-- The slot clips the letter at the envelope's bottom edge while
-             letting it rise above the top -->
-        <div class="letter-slot">
-            <div class="letter">
-                <p class="letter-text">winner winner<br>chicken dinner</p>
-                <span class="letter-candy" aria-hidden="true">🍭</span>
+            <!-- The slot clips the letter at the envelope's bottom edge while
+                 letting it rise above the top -->
+            <div class="letter-slot">
+                <!-- The letter: the periodic table with Na and Cl picked out
+                     in candy colours. The boxes are filled in by periodic-table.js. -->
+                <div class="letter">
+                    <div class="sheet-candies" id="sheet-candies" aria-hidden="true"></div>
+                    <div class="pt-scroll">
+                        <div class="pt-wrap">
+                            <div class="pt-grid" id="periodic-table" role="img"
+                                 aria-label="A blank periodic table with two boxes highlighted"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <span class="env-front" aria-hidden="true"></span>
-        <span class="env-flap" aria-hidden="true"></span>
+            <span class="env-front" aria-hidden="true"></span>
+            <span class="env-flap" aria-hidden="true"></span>
+        </div>
     </div>
-</div>
 </div>
 
 <?php require('template/footer.phtml') ?>
