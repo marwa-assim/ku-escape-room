@@ -10,9 +10,9 @@ const blockCountdownDisplay = document.getElementById('block-countdown');
 
 const ingredientsNames = [
     'Strawberry', // index 0
-    'Cocoa',      // index 1
+    'Chocolate',      // index 1
     'Lemon',      // index 2
-    'Caramel',    // index 3
+    'Honey',    // index 3
     'Sugar',      // index 4
     'Milk',       // index 5
     'Cherry',     // index 6
